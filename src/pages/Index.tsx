@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,13 +7,15 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { 
   RecycleIcon, ImageIcon, ScanSearch, Database, Info, 
-  Sparkles, Leaf, Upload, Microscope, BarChart4
+  Sparkles, Leaf, Upload, Microscope, BarChart4, Camera
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import PlasticInfo from "@/components/PlasticInfo";
 import DetectionCanvas from "@/components/DetectionCanvas";
 import JsonView from "@/components/JsonView";
+import CameraCapture from "@/components/CameraCapture";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -21,9 +24,11 @@ const Index = () => {
   const [detections, setDetections] = useState<PlasticDetection[]>([]);
   const [nonPlasticDetected, setNonPlasticDetected] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("results");
+  const [inputMethod, setInputMethod] = useState<"upload" | "camera">("upload");
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Calculate canvas size based on container dimensions
   useEffect(() => {
@@ -98,6 +103,12 @@ const Index = () => {
     }
   };
 
+  const handleDetectionsReceived = (newDetections: PlasticDetection[], hasNonPlastic: boolean) => {
+    setDetections(newDetections);
+    setNonPlasticDetected(hasNonPlastic);
+    setActiveTab("results");
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b bg-glass backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
@@ -107,7 +118,7 @@ const Index = () => {
               <RecycleIcon className="h-7 w-7 text-eco-green-medium animate-float" />
               <div className="absolute inset-0 bg-eco-green-medium/20 rounded-full blur-md animate-pulse-subtle"></div>
             </div>
-            <h1 className="text-2xl font-bold text-gradient">GreenLens AI</h1>
+            <h1 className="text-2xl font-bold text-gradient">PlasticDetect AI</h1>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="bg-eco-gradient text-xs font-medium text-white px-3 py-1 rounded-full animate-pulse-subtle">
@@ -117,53 +128,81 @@ const Index = () => {
         </div>
       </header>
       
-      <main className="flex-1 container py-8 md:py-12">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* Left column - Setup */}
-          <div className="space-y-8 md:col-span-1 animate-slide-in-left">
+      <main className="flex-1 container py-6 md:py-10">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Left column - Input Methods */}
+          <div className="space-y-6 md:col-span-1 animate-slide-in-left">
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="eco-icon animate-pulse-subtle">
                   <ImageIcon className="h-5 w-5" />
                 </div>
-                <h2 className="text-xl font-semibold text-gradient">Input Image</h2>
+                <h2 className="text-xl font-semibold text-gradient">Image Source</h2>
               </div>
               
               <Card className="futuristic-card overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-eco-gradient opacity-10 rounded-full blur-xl -translate-y-12 translate-x-12"></div>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-5 w-5 text-eco-teal" />
-                    Upload Image
+                    Select Input Method
                   </CardTitle>
                   <CardDescription>
-                    Upload an image containing waste items for plastic detection.
+                    Choose how you want to capture plastic items for detection
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ImageUpload
-                    onImageSelected={handleImageSelected}
-                    disabled={isAnalyzing}
-                  />
-                  <div className="mt-6">
-                    <Button 
-                      onClick={handleAnalyze} 
-                      disabled={!selectedImage || isAnalyzing}
-                      className="eco-button w-full group"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <Microscope className="mr-2 h-4 w-4 animate-pulse" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <ScanSearch className="mr-2 h-4 w-4 group-hover:animate-pulse" />
-                          Detect Plastic Items
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Tabs 
+                    defaultValue="upload" 
+                    value={inputMethod}
+                    onValueChange={(value) => setInputMethod(value as "upload" | "camera")}
+                    className="w-full"
+                  >
+                    <TabsList className="grid grid-cols-2 w-full mb-4">
+                      <TabsTrigger value="upload" className="data-[state=active]:bg-eco-gradient data-[state=active]:text-white">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload
+                      </TabsTrigger>
+                      <TabsTrigger value="camera" className="data-[state=active]:bg-eco-gradient data-[state=active]:text-white">
+                        <Camera className="h-4 w-4 mr-2" />
+                        Camera
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="upload" className="mt-0">
+                      <ImageUpload
+                        onImageSelected={handleImageSelected}
+                        disabled={isAnalyzing}
+                      />
+                      <div className="mt-6">
+                        <Button 
+                          onClick={handleAnalyze} 
+                          disabled={!selectedImage || isAnalyzing}
+                          className="eco-button w-full group"
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <Microscope className="mr-2 h-4 w-4 animate-pulse" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <ScanSearch className="mr-2 h-4 w-4 group-hover:animate-pulse" />
+                              Detect Plastic Items
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="camera" className="mt-0">
+                      <CameraCapture 
+                        onImageCaptured={handleImageSelected}
+                        onDetectionsReceived={handleDetectionsReceived}
+                        isAnalyzing={isAnalyzing}
+                        setIsAnalyzing={setIsAnalyzing}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
               
@@ -211,7 +250,7 @@ const Index = () => {
             
             <div ref={containerRef}>
               {imagePreview && (
-                <Card className="futuristic-card overflow-hidden shadow-lg mb-8 transition-all duration-300 hover:shadow-eco-glow animate-zoom-in">
+                <Card className="futuristic-card overflow-hidden shadow-lg mb-6 transition-all duration-300 hover:shadow-eco-glow animate-zoom-in">
                   <div className="p-3 md:p-6">
                     <DetectionCanvas 
                       imageUrl={imagePreview}
@@ -254,14 +293,23 @@ const Index = () => {
                   <div className="flex flex-col items-center justify-center space-y-6">
                     <div className="relative">
                       <div className="rounded-full bg-eco-gradient p-6 animate-float">
-                        <ImageIcon className="h-10 w-10 text-white" />
+                        {inputMethod === "upload" ? (
+                          <ImageIcon className="h-10 w-10 text-white" />
+                        ) : (
+                          <Camera className="h-10 w-10 text-white" />
+                        )}
                       </div>
                       <Sparkles className="absolute -right-2 -top-1 h-5 w-5 text-eco-cyan animate-pulse" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-semibold text-gradient">No Image Selected</h3>
+                      <h3 className="text-xl font-semibold text-gradient">
+                        {inputMethod === "upload" ? "No Image Selected" : "Camera Not Activated"}
+                      </h3>
                       <p className="text-muted-foreground">
-                        Upload an image to detect plastic waste items and learn how to recycle them.
+                        {inputMethod === "upload" 
+                          ? "Upload an image to detect plastic waste items and learn how to recycle them."
+                          : "Activate camera to detect plastic waste items in real-time."
+                        }
                       </p>
                     </div>
                     <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground">
@@ -298,8 +346,8 @@ const Index = () => {
         </div>
       </main>
       
-      <footer className="border-t py-6 md:py-5 bg-glass">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
+      <footer className="border-t py-4 bg-glass mt-auto">
+        <div className="container flex flex-col items-center justify-between gap-3 md:h-16 md:flex-row">
           <div className="flex items-center gap-2">
             <RecycleIcon className="h-5 w-5 text-eco-green-medium" />
             <p className="text-sm text-gradient font-medium">
@@ -315,5 +363,7 @@ const Index = () => {
     </div>
   );
 };
+
+
 
 export default Index;
