@@ -115,10 +115,14 @@ const Index = () => {
         <div className="container flex h-16 items-center">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <RecycleIcon className="h-7 w-7 text-eco-green-medium animate-float" />
+            <img
+  src="/cat.png"
+  alt="Recycle Icon"
+  className="h-7 w-7 animate-float"
+/>
               <div className="absolute inset-0 bg-eco-green-medium/20 rounded-full blur-md animate-pulse-subtle"></div>
             </div>
-            <h1 className="text-2xl font-bold text-gradient">PlasticDetect AI</h1>
+            <h1 className="text-2xl font-bold text-gradient">GreenLens AI</h1>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="bg-eco-gradient text-xs font-medium text-white px-3 py-1 rounded-full animate-pulse-subtle">
@@ -351,7 +355,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <RecycleIcon className="h-5 w-5 text-eco-green-medium" />
             <p className="text-sm text-gradient font-medium">
-              PlasticDetect AI - Helping identify and classify plastic waste for better recycling
+              GreenLens AI - Helping identify and classify plastic waste for better recycling
             </p>
           </div>
           <p className="text-sm bg-eco-gradient bg-clip-text text-transparent font-medium flex items-center gap-1">
