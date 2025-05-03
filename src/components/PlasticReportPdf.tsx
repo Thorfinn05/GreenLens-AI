@@ -459,14 +459,14 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
           </View>
         )}
 
-        {/* Recycling Information */}
+        {/* Recycling Information
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>Recycling Guidelines</Text>
           <Text style={styles.infoText}>• Clean and dry containers before recycling</Text>
           <Text style={styles.infoText}>• Check local recycling guidelines as they vary by location</Text>
           <Text style={styles.infoText}>• Remove caps and lids if required by your local program</Text>
           <Text style={styles.infoText}>• Compact items to save space in recycling bins</Text>
-        </View>
+        </View> */}
 
         {/* Footer */}
         <View style={styles.footer} fixed>
