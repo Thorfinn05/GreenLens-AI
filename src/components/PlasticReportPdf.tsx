@@ -1,4 +1,3 @@
-
 import { Document, Page, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
 import { PlasticDetection } from "@/services/geminiService";
 
@@ -77,10 +76,25 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderLeft: "3 solid #3CB371",
   },
+  groupedDetectionItem: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 5,
+    borderLeft: "3 solid #3CB371",
+  },
   plasticName: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#1E4D6B",
+  },
+  plasticTypeHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1E4D6B",
+    marginBottom: 6,
+    paddingBottom: 4,
+    borderBottom: "1 solid #BDE5F8",
   },
   confidenceBar: {
     height: 8,
@@ -95,6 +109,15 @@ const styles = StyleSheet.create({
   confidenceText: {
     fontSize: 12,
     color: "#666",
+  },
+  detectedItemsList: {
+    marginTop: 8,
+    marginLeft: 10,
+  },
+  detectedItem: {
+    fontSize: 12,
+    color: "#444",
+    marginBottom: 4,
   },
   infoSection: {
     marginVertical: 15,
@@ -231,6 +254,21 @@ const getCommonUses = (plasticType: string): string => {
   return "Various specialized applications";
 };
 
+// Helper function to group detections by plastic type
+const groupDetectionsByType = (detections: PlasticDetection[]) => {
+  const groupedDetections: Record<string, PlasticDetection[]> = {};
+  
+  detections.forEach(detection => {
+    // Use the plastic type as the key
+    if (!groupedDetections[detection.label]) {
+      groupedDetections[detection.label] = [];
+    }
+    groupedDetections[detection.label].push(detection);
+  });
+  
+  return groupedDetections;
+};
+
 interface PlasticReportPdfProps {
   detections: PlasticDetection[];
   nonPlasticDetected: boolean;
@@ -247,6 +285,7 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
   }).format(captureDate);
 
   const uniquePlasticTypes = Array.from(new Set(detections.map(d => d.label)));
+  const groupedDetections = groupDetectionsByType(detections);
 
   return (
     <Document>
@@ -270,15 +309,20 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
           <Text style={styles.summaryText}>Non-plastic materials: {nonPlasticDetected ? "Present" : "None detected"}</Text>
         </View>
 
-        {/* Plastic Detections */}
+        {/* Grouped Plastic Detections */}
         {detections.length > 0 && (
           <View style={styles.detectionSection}>
             <Text style={styles.sectionTitle}>Detailed Plastic Analysis</Text>
-            {detections.map((detection, index) => {
-              const confidencePercentage = Math.round(detection.confidence * 100);
+            
+            {Object.entries(groupedDetections).map(([plasticType, items], index) => {
+              // Calculate average confidence for the plastic type
+              const avgConfidence = items.reduce((sum, item) => sum + item.confidence, 0) / items.length;
+              const confidencePercentage = Math.round(avgConfidence * 100);
+              
               return (
-                <View key={index} style={styles.detectionItem}>
-                  <Text style={styles.plasticName}>{detection.label}</Text>
+                <View key={index} style={styles.groupedDetectionItem}>
+                  <Text style={styles.plasticTypeHeader}>{plasticType}</Text>
+                  
                   {/* Confidence bar */}
                   <View style={styles.confidenceBar}>
                     <View 
@@ -291,23 +335,33 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
                       ]} 
                     />
                   </View>
-                  <Text style={styles.confidenceText}>Confidence: {confidencePercentage}%</Text>
+                  <Text style={styles.confidenceText}>Average Confidence: {confidencePercentage}%</Text>
+                  
+                  {/* Detected items list */}
+                  <Text style={styles.detailsTitle}>Detected Items:</Text>
+                  <View style={styles.detectedItemsList}>
+                    {items.map((item, i) => (
+                      <Text key={i} style={styles.detectedItem}>
+                        • Item {i+1}: {Math.round(item.confidence * 100)}% confidence
+                      </Text>
+                    ))}
+                  </View>
                   
                   {/* Plastic information box */}
                   <View style={styles.plasticInfoBox}>
-                    <Text style={styles.plasticInfoText}>{getPlasticInfo(detection.label)}</Text>
+                    <Text style={styles.plasticInfoText}>{getPlasticInfo(plasticType)}</Text>
                   </View>
                   
                   {/* Common uses */}
                   <View style={styles.detailsBox}>
                     <Text style={styles.detailsTitle}>Common Uses:</Text>
-                    <Text style={styles.detailsText}>{getCommonUses(detection.label)}</Text>
+                    <Text style={styles.detailsText}>{getCommonUses(plasticType)}</Text>
                   </View>
                   
                   {/* Extended details */}
                   <View style={styles.detailsBox}>
                     <Text style={styles.detailsTitle}>Detailed Information:</Text>
-                    <Text style={styles.detailsText}>{getPlasticDetails(detection.label)}</Text>
+                    <Text style={styles.detailsText}>{getPlasticDetails(plasticType)}</Text>
                   </View>
                 </View>
               );
