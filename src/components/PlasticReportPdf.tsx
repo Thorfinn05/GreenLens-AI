@@ -145,6 +145,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#333",
   },
+  detailsBox: {
+    marginTop: 5,
+    padding: 5,
+    backgroundColor: "#f8f8ff",
+    borderRadius: 3,
+    borderLeft: "2 solid #9b87f5",
+  },
+  detailsTitle: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 2,
+  },
+  detailsText: {
+    fontSize: 9,
+    color: "#555",
+    lineHeight: 1.4,
+  },
 });
 
 // Helper function for plastic type descriptions
@@ -167,6 +185,50 @@ const getPlasticInfo = (plasticType: string): string => {
   }
   
   return "Additional information not available for this plastic type.";
+};
+
+// Helper function to get more detailed description based on plastic type
+const getPlasticDetails = (plasticType: string): string => {
+  const details: Record<string, string> = {
+    "PET": "PET is one of the most widely recycled plastics worldwide. When recycled, it can be made into new bottles, clothing, carpet, and other products. Look for the triangle with number 1 inside for identification. Proper cleaning before recycling is essential.",
+    "HDPE": "HDPE is considered one of the safest plastics for food and beverages. It can be recycled into playground equipment, plastic lumber, and new containers. Find the triangle with number 2 inside to identify HDPE products.",
+    "PVC": "PVC contains chlorine and can leach harmful chemicals. It's difficult to recycle and often rejected by recycling programs. PVC products have a triangle with number 3 inside. Consider alternatives when possible.",
+    "LDPE": "LDPE is frequently used in plastic bags and food packaging. It's increasingly accepted in recycling programs but check your local guidelines. Look for the triangle with number 4 inside to identify LDPE products.",
+    "PP": "PP is considered safe for food contact and is commonly used in food containers. It can be recycled into items like brooms, trays and bins. PP products have a triangle with number 5 inside.",
+    "PS": "PS or Styrofoam can be harmful to health when heated. It's rarely recycled due to its low weight-to-volume ratio. PS products have a triangle with number 6 inside. Consider avoiding when possible.",
+    "Other": "This category includes all other plastics and multi-material items. These are typically difficult to recycle and often end up in landfills. Products in this category have a triangle with number 7 inside."
+  };
+
+  // Try to match the plastic type to our database
+  for (const key of Object.keys(details)) {
+    if (plasticType.toUpperCase().includes(key)) {
+      return details[key];
+    }
+  }
+  
+  return "This appears to be a specialized or composite plastic type. These materials often have specific disposal requirements and limited recycling options. Check with local waste management authorities for proper disposal guidance.";
+};
+
+// Helper function for common plastic uses
+const getCommonUses = (plasticType: string): string => {
+  const uses: Record<string, string> = {
+    "PET": "Beverage bottles, food containers, medicine jars, textile fibers",
+    "HDPE": "Milk jugs, detergent bottles, toys, grocery bags, outdoor furniture",
+    "PVC": "Pipes, window frames, wire insulation, medical equipment, credit cards",
+    "LDPE": "Squeeze bottles, plastic bags, food wrap, flexible container lids",
+    "PP": "Food containers, bottle caps, straws, medical equipment, auto parts",
+    "PS": "Foam cups, disposable cutlery, packaging materials, insulation",
+    "Other": "Water bottles, electronics, eyeglasses, specialty packaging",
+  };
+
+  // Try to match the plastic type to our database
+  for (const key of Object.keys(uses)) {
+    if (plasticType.toUpperCase().includes(key)) {
+      return uses[key];
+    }
+  }
+  
+  return "Various specialized applications";
 };
 
 interface PlasticReportPdfProps {
@@ -234,6 +296,18 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
                   {/* Plastic information box */}
                   <View style={styles.plasticInfoBox}>
                     <Text style={styles.plasticInfoText}>{getPlasticInfo(detection.label)}</Text>
+                  </View>
+                  
+                  {/* Common uses */}
+                  <View style={styles.detailsBox}>
+                    <Text style={styles.detailsTitle}>Common Uses:</Text>
+                    <Text style={styles.detailsText}>{getCommonUses(detection.label)}</Text>
+                  </View>
+                  
+                  {/* Extended details */}
+                  <View style={styles.detailsBox}>
+                    <Text style={styles.detailsTitle}>Detailed Information:</Text>
+                    <Text style={styles.detailsText}>{getPlasticDetails(detection.label)}</Text>
                   </View>
                 </View>
               );

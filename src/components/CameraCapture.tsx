@@ -1,11 +1,10 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, FlipHorizontal, X, Loader2, Search, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
-import PdfDownloadButton from "@/components/PdfDownloadButton";
+import PdfDownloadButton from "./PdfDownloadButton";
 
 interface CameraCaptureProps {
   onImageCaptured: (file: File) => void;
