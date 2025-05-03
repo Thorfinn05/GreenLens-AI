@@ -254,6 +254,76 @@ const getCommonUses = (plasticType: string): string => {
   return "Various specialized applications";
 };
 
+// Helper function for plastic-specific recycling guidelines
+const getRecyclingGuidelines = (plasticType: string): string[] => {
+  const guidelines: Record<string, string[]> = {
+    "PET": [
+      "Rinse containers thoroughly to remove any food or liquid residue",
+      "Remove caps and lids (these are usually made from a different type of plastic)",
+      "Flatten bottles to save space in recycling bins",
+      "Look for the #1 recycling symbol on the bottom of containers",
+      "Most curbside programs accept PET bottles and containers"
+    ],
+    "HDPE": [
+      "Rinse containers to remove product residue",
+      "Keep caps on bottles when recycling (current best practice)",
+      "Squeeze out excess air before recycling",
+      "Look for the #2 recycling symbol on the bottom of containers",
+      "Widely accepted in most curbside recycling programs"
+    ],
+    "PVC": [
+      "Contact your local waste management authority for specific disposal options",
+      "PVC is rarely accepted in curbside recycling programs",
+      "Look for specialized PVC recycling drop-off locations",
+      "Consider alternatives to PVC when possible",
+      "Identify by the #3 recycling symbol"
+    ],
+    "LDPE": [
+      "Check if your local recycling program accepts plastic bags and film",
+      "Many grocery stores offer collection bins for plastic bags",
+      "Keep LDPE items clean and dry before recycling",
+      "Bundle plastic bags together in one bag before recycling",
+      "Identify by the #4 recycling symbol"
+    ],
+    "PP": [
+      "Rinse containers to remove food residue",
+      "Replace lids on containers when possible",
+      "Check if your local program accepts PP (increasingly common)",
+      "Some curbside programs now accept yogurt containers and similar PP items",
+      "Look for the #5 recycling symbol"
+    ],
+    "PS": [
+      "Check if your community has specialized PS recycling",
+      "Foam PS (Styrofoam) is rarely accepted in curbside programs",
+      "Look for dedicated drop-off locations for foam packaging",
+      "Rigid PS containers may be accepted in some programs",
+      "Identify by the #6 recycling symbol"
+    ],
+    "Other": [
+      "Check with your local recycling authority for specific guidelines",
+      "These materials are often difficult to recycle through standard programs",
+      "Consider reusing rather than recycling when possible",
+      "Look for manufacturer take-back programs",
+      "Identify by the #7 recycling symbol"
+    ]
+  };
+
+  // Try to match the plastic type to our guidelines database
+  for (const key of Object.keys(guidelines)) {
+    if (plasticType.toUpperCase().includes(key)) {
+      return guidelines[key];
+    }
+  }
+  
+  // Default generic guidelines if no match is found
+  return [
+    "Clean and dry containers before recycling",
+    "Check local recycling guidelines as they vary by location",
+    "Remove caps and lids if required by your local program",
+    "Compact items to save space in recycling bins"
+  ];
+};
+
 // Helper function to group detections by plastic type
 const groupDetectionsByType = (detections: PlasticDetection[]) => {
   const groupedDetections: Record<string, PlasticDetection[]> = {};
@@ -319,6 +389,9 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
               const avgConfidence = items.reduce((sum, item) => sum + item.confidence, 0) / items.length;
               const confidencePercentage = Math.round(avgConfidence * 100);
               
+              // Get plastic-specific recycling guidelines
+              const recyclingGuides = getRecyclingGuidelines(plasticType);
+              
               return (
                 <View key={index} style={styles.groupedDetectionItem}>
                   <Text style={styles.plasticTypeHeader}>{plasticType}</Text>
@@ -342,7 +415,7 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
                   <View style={styles.detectedItemsList}>
                     {items.map((item, i) => (
                       <Text key={i} style={styles.detectedItem}>
-                        • Item {i+1}: {Math.round(item.confidence * 100)}% confidence
+                        • {item.item_description || `Item ${i+1}`}: {Math.round(item.confidence * 100)}% confidence
                       </Text>
                     ))}
                   </View>
@@ -356,6 +429,14 @@ const PlasticReportPdf = ({ detections, nonPlasticDetected, captureDate }: Plast
                   <View style={styles.detailsBox}>
                     <Text style={styles.detailsTitle}>Common Uses:</Text>
                     <Text style={styles.detailsText}>{getCommonUses(plasticType)}</Text>
+                  </View>
+                  
+                  {/* Recycling guidelines specific to this plastic type */}
+                  <View style={styles.detailsBox}>
+                    <Text style={styles.detailsTitle}>Recycling Guidelines for {plasticType}:</Text>
+                    {recyclingGuides.map((guide, i) => (
+                      <Text key={i} style={styles.detailsText}>• {guide}</Text>
+                    ))}
                   </View>
                   
                   {/* Extended details */}
