@@ -1,9 +1,11 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, FlipHorizontal, X, Loader2, Search, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
+import PdfDownloadButton from "@/components/PdfDownloadButton";
 
 interface CameraCaptureProps {
   onImageCaptured: (file: File) => void;
@@ -34,6 +36,7 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     audio.play();
   };
 
+  // Get list of cameras
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices()
       .then(devices => {
@@ -49,7 +52,7 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     try {
       const constraints: MediaStreamConstraints = {
         video: { facingMode: isFrontCamera ? "user" : "environment" },
-        audio: false,
+        audio: false
       };
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -96,7 +99,8 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
     detections.forEach(d => {
-      const [x, y, w, h] = d.bbox;
+      // Changed from d.bbox to d.bounding_box to match the PlasticDetection interface
+      const [x, y, w, h] = d.bounding_box;
       ctx.strokeStyle = "#00ff00";
       ctx.lineWidth = 2;
       ctx.strokeRect(x, y, w, h);
@@ -106,50 +110,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
       ctx.fillText(`${d.label} (${Math.round(d.confidence * 100)}%)`, x + 4, y - 6);
     });
   };
-
-  // const handleDetection = async () => {
-  //   if (!videoRef.current || !canvasRef.current) return;
-
-  //   const canvas = canvasRef.current;
-  //   const ctx = canvas.getContext("2d");
-  //   if (!ctx) return;
-
-  //   canvas.width = videoRef.current.videoWidth;
-  //   canvas.height = videoRef.current.videoHeight;
-  //   ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-  //   canvas.toBlob(async blob => {
-  //     if (!blob) {
-  //       toast.error("Failed to capture frame.");
-  //       return;
-  //     }
-
-  //     const file = new File([blob], "frame.jpg", { type: "image/jpeg" });
-  //     onImageCaptured(file);
-  //     setIsAnalyzing(true);
-
-  //     try {
-  //       const result = await analyzeImage(file);
-  //       setDetections(result.detections);
-  //       setNonPlasticDetected(!!result.non_plastic_detected);
-  //       onDetectionsReceived(result.detections, !!result.non_plastic_detected);
-
-  //       if (result.detections.length === 0) {
-  //         toast.info(result.non_plastic_detected ? "Non-plastic items detected" : "No items detected");
-  //       } else {
-  //         toast.success(`${result.detections.length} plastic item(s) detected.`);
-  //         playSound();
-  //       }
-
-  //       drawDetections(canvas, result.detections);
-  //     } catch (err) {
-  //       toast.error("Detection failed.");
-  //       console.error(err);
-  //     } finally {
-  //       setIsAnalyzing(false);
-  //     }
-  //   }, "image/jpeg", 0.95);
-  // };
 
   const handleDetection = async () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -191,7 +151,8 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
         // draw live boxes
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         result.detections.forEach(d => {
-          const [x, y, w, h] = d.bbox;
+          // Changed from d.bbox to d.bounding_box to match the PlasticDetection interface
+          const [x, y, w, h] = d.bounding_box;
           ctx.strokeStyle = "#00ff00";
           ctx.lineWidth = 2;
           ctx.strokeRect(x, y, w, h);
@@ -236,24 +197,13 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto gap-4">
       <div className="w-full relative rounded-lg overflow-hidden bg-muted">
         <div className="relative aspect-video w-full bg-black">
-          {/* <video
+          <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
             className="absolute top-0 left-0 w-full h-full object-cover z-0"
-          /> */}
-          <video
-  ref={videoRef}
-  autoPlay
-  playsInline
-  muted
-  className="absolute top-0 left-0 w-full h-full object-cover z-0"
-/>
-<canvas
-  ref={canvasRef}
-  className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
-/>
+          />
           <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" />
         </div>
       </div>
@@ -310,6 +260,12 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
               </li>
             ))}
           </ul>
+          <div className="mt-4">
+            <PdfDownloadButton 
+              detections={detections} 
+              nonPlasticDetected={nonPlasticDetected} 
+            />
+          </div>
         </div>
       )}
 

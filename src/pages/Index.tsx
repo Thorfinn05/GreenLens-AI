@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +15,7 @@ import JsonView from "@/components/JsonView";
 import CameraCapture from "@/components/CameraCapture";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
 import { useIsMobile } from "@/hooks/use-mobile";
+import PdfDownloadButton from "@/components/PdfDownloadButton";
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -115,11 +115,7 @@ const Index = () => {
         <div className="container flex h-16 items-center">
           <div className="flex items-center gap-2">
             <div className="relative">
-            <img
-  src="/cat.png"
-  alt="Recycle Icon"
-  className="h-7 w-7 animate-float"
-/>
+            <img src="/cat.png" alt="Recycle Icon" className="h-7 w-7 animate-float"/>
               <div className="absolute inset-0 bg-eco-green-medium/20 rounded-full blur-md animate-pulse-subtle"></div>
             </div>
             <h1 className="text-2xl font-bold text-gradient">GreenLens AI</h1>
@@ -236,6 +232,14 @@ const Index = () => {
                         <span className="text-sm font-medium">Other Materials:</span>
                         <span className="text-sm">{nonPlasticDetected ? "Present" : "None"}</span>
                       </div>
+                      {detections.length > 0 && (
+                        <div className="pt-3 mt-3 border-t">
+                          <PdfDownloadButton 
+                            detections={detections} 
+                            nonPlasticDetected={nonPlasticDetected}
+                          />
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -367,7 +371,5 @@ const Index = () => {
     </div>
   );
 };
-
-
 
 export default Index;
