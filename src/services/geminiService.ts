@@ -347,7 +347,8 @@ export interface AnalysisResult {
   non_plastic_detected?: boolean; // Flag to indicate if non-plastic items were detected
 }
 
-const API_KEY = "AIzaSyA877spYthAV1komvQY6b3mkeIbEHg_j4w";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_DELAY = 1000; // 1 second
