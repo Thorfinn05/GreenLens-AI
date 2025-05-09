@@ -7,18 +7,45 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Vite output
+dist/
+dist-ssr/
 *.local
+
+# Env files
+.env
+.env.*  # ignores .env.development, .env.production, etc.
+
+# Firebase local emulators & config
+.firebase/
+.firebaserc
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+
+# Optional: Build tools and IDEs
+coverage/
+build/
+.cache/
+turbo/
