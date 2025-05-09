@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -17,6 +16,7 @@ interface Detection {
   confidence: number;
   timestamp: Date;
   nonPlasticDetected?: boolean;
+  imageDataBase64?: string; // Make sure this exists in your Firestore data
 }
 
 export default function DetectionHistory() {
@@ -42,7 +42,7 @@ export default function DetectionHistory() {
         const querySnapshot = await getDocs(q);
         const detectionsData: Detection[] = [];
 
-        querySnapshot.forEach((doc) => {
+        for (const doc of querySnapshot.docs) {
           const data = doc.data();
           detectionsData.push({
             id: doc.id,
@@ -51,8 +51,9 @@ export default function DetectionHistory() {
             confidence: data.confidence || 0,
             timestamp: data.timestamp?.toDate() || new Date(),
             nonPlasticDetected: data.nonPlasticDetected || false,
+            imageDataBase64: data.imageDataBase64, // Fetch the Base64 image data
           });
-        });
+        }
 
         setDetections(detectionsData);
       } catch (error) {
@@ -109,15 +110,15 @@ export default function DetectionHistory() {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Your Detection History</h2>
         <div className="flex items-center gap-2 border rounded-md p-1">
-          <Toggle 
-            pressed={viewMode === 'list'} 
+          <Toggle
+            pressed={viewMode === 'list'}
             onPressedChange={() => setViewMode('list')}
             aria-label="List view"
           >
             <List className="h-4 w-4" />
           </Toggle>
-          <Toggle 
-            pressed={viewMode === 'table'} 
+          <Toggle
+            pressed={viewMode === 'table'}
             onPressedChange={() => setViewMode('table')}
             aria-label="Table view"
           >
@@ -139,11 +140,20 @@ export default function DetectionHistory() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
+                {detection.imageDataBase64 && (
+                  <div className="mb-3 border rounded overflow-hidden">
+                    <img
+                      src={detection.imageDataBase64}
+                      alt="Analyzed Detection"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                )}
                 <p className="mb-2">
-                  {detection.detectedItems.length > 0 
-                    ? `Detected Items: ${detection.detectedItems.join(", ")}` 
-                    : detection.nonPlasticDetected 
-                      ? "Non-plastic items detected" 
+                  {detection.detectedItems.length > 0
+                    ? `Detected Items: ${detection.detectedItems.join(", ")}`
+                    : detection.nonPlasticDetected
+                      ? "Non-plastic items detected"
                       : "No items detected"}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -159,6 +169,7 @@ export default function DetectionHistory() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Plastic Type</TableHead>
                   <TableHead>Detected Items</TableHead>
                   <TableHead>Confidence</TableHead>
@@ -168,12 +179,25 @@ export default function DetectionHistory() {
               <TableBody>
                 {detections.map((detection) => (
                   <TableRow key={detection.id}>
+                    <TableCell>
+                      {detection.imageDataBase64 ? (
+                        <div className="w-16 h-16 relative rounded overflow-hidden">
+                          <img
+                            src={detection.imageDataBase64}
+                            alt="Analyzed Detection"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No image</span>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">{detection.plasticType}</TableCell>
                     <TableCell>
-                      {detection.detectedItems.length > 0 
-                        ? detection.detectedItems.join(", ") 
-                        : detection.nonPlasticDetected 
-                          ? "Non-plastic items" 
+                      {detection.detectedItems.length > 0
+                        ? detection.detectedItems.join(", ")
+                        : detection.nonPlasticDetected
+                          ? "Non-plastic items"
                           : "No items detected"}
                     </TableCell>
                     <TableCell>{(detection.confidence * 100).toFixed(1)}%</TableCell>
