@@ -95,6 +95,7 @@ const ImageUpload = ({ onImageSelected, disabled = false }: ImageUploadProps) =>
           accept="image/*"
           className="hidden"
           disabled={disabled}
+          title="Upload an image"
         />
         
         {!selectedImage ? (
