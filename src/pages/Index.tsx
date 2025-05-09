@@ -16,6 +16,8 @@ import CameraCapture from "@/components/CameraCapture";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PdfDownloadButton from "@/components/PdfDownloadButton";
+import { Link } from 'react-router-dom';
+import Navbar from "@/components/Navbar"; // ✅ This is the one to use
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -30,18 +32,16 @@ const Index = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Calculate canvas size based on container dimensions
   useEffect(() => {
     if (containerRef.current && imagePreview) {
       const containerWidth = containerRef.current.clientWidth;
       setCanvasSize({
         width: containerWidth,
-        height: containerWidth * 0.75, // Approximate aspect ratio
+        height: containerWidth * 0.75,
       });
     }
   }, [containerRef, imagePreview]);
 
-  // Handle window resize for responsive canvas
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current && imagePreview) {
@@ -52,25 +52,48 @@ const Index = () => {
         });
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [imagePreview]);
 
   const handleImageSelected = (file: File) => {
     setSelectedImage(file);
-    
-    // Create image preview URL
     const reader = new FileReader();
     reader.onload = () => {
       setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-    
-    // Reset analysis results
     setDetections([]);
     setNonPlasticDetected(false);
   };
+
+  // const handleAnalyze = async () => {
+  //   if (!selectedImage) {
+  //     toast.error("Please select an image first");
+  //     return;
+  //   }
+  //   setIsAnalyzing(true);
+  //   setActiveTab("results");
+  //   try {
+  //     const result = await analyzeImage(selectedImage);
+  //     setDetections(result.detections);
+  //     setNonPlasticDetected(!!result.non_plastic_detected);
+  //     if (result.detections.length === 0) {
+  //       if (result.non_plastic_detected) {
+  //         toast.info("No plastic items detected, but other materials were identified");
+  //       } else {
+  //         toast.info("No items detected in the image");
+  //       }
+  //     } else {
+  //       toast.success(`Detected ${result.detections.length} plastic item${result.detections.length !== 3 ? 's' : ''}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Analysis error:", error);
+  //     toast.error("Failed to analyze image");
+  //   } finally {
+  //     setIsAnalyzing(false);
+  //   }
+  // };
 
   const handleAnalyze = async () => {
     if (!selectedImage) {
@@ -111,22 +134,32 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-glass backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
+      {/* <Navbar className="border-b bg-glass backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center">
           <div className="flex items-center gap-2">
             <div className="relative">
-            <img src="/cat.png" alt="Recycle Icon" className="h-7 w-7 animate-float"/>
+              <RecycleIcon className="h-7 w-7 text-eco-green-medium animate-float" />
               <div className="absolute inset-0 bg-eco-green-medium/20 rounded-full blur-md animate-pulse-subtle"></div>
             </div>
-            <h1 className="text-2xl font-bold text-gradient">GreenLens AI</h1>
+            <h1 className="text-2xl font-bold text-gradient">PlasticDetect AI</h1>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-4">
+            <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition">
+              Profile
+            </Link>
+            <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition">
+              Login
+            </Link>
+            <Link to="/signup" className="text-sm font-medium text-muted-foreground hover:text-foreground transition">
+              Sign Up
+            </Link>
             <span className="bg-eco-gradient text-xs font-medium text-white px-3 py-1 rounded-full animate-pulse-subtle">
               Powered by Gemini 2.5
             </span>
           </div>
         </div>
-      </header>
+      </Navbar> */}
+
       
       <main className="flex-1 container py-6 md:py-10">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -359,7 +392,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <RecycleIcon className="h-5 w-5 text-eco-green-medium" />
             <p className="text-sm text-gradient font-medium">
-              GreenLens AI - Helping identify and classify plastic waste for better recycling
+              PlasticDetect AI - Helping identify and classify plastic waste for better recycling
             </p>
           </div>
           <p className="text-sm bg-eco-gradient bg-clip-text text-transparent font-medium flex items-center gap-1">
