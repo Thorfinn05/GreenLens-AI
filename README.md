@@ -28,6 +28,10 @@ The application is built with Vite, React, TypeScript, Firebase, and Tailwind CS
 
 ---
 
+🔗 **Live Demo:** [GreenLens AI](https://greenlens-ai.vercel.app/)
+
+---
+
 ## 📦 Installation
 
 1. **Clone the repository**:
