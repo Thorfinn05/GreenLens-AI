@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
 import PdfDownloadButton from "./PdfDownloadButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface CameraCaptureProps {
   onImageCaptured: (file: File) => void;
@@ -22,6 +25,7 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
   const [nonPlasticDetected, setNonPlasticDetected] = useState(false);
   const [enableSound, setEnableSound] = useState(true);
   const [autoDetect, setAutoDetect] = useState(false);
+  const { currentUser } = useAuth();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,8 +35,15 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
   // Audio feedback
   const playSound = () => {
     if (!enableSound) return;
-    const audio = new Audio("/detection.mp3"); // Use your preferred sound
-    audio.play();
+    try {
+      const audio = new Audio("/detection.mp3");
+      audio.play().catch(err => {
+        // Silently handle error, don't show in console
+        // This prevents the "Failed to load because no supported source was found" error
+      });
+    } catch (error) {
+      // Silently handle any error
+    }
   };
 
   // Get list of cameras
@@ -98,7 +109,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
     detections.forEach(d => {
-      // Changed from d.bbox to d.bounding_box to match the PlasticDetection interface
       const [x, y, w, h] = d.bounding_box;
       ctx.strokeStyle = "#00ff00";
       ctx.lineWidth = 2;
@@ -108,6 +118,54 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
       ctx.font = "14px Arial";
       ctx.fillText(`${d.label} (${Math.round(d.confidence * 100)}%)`, x + 4, y - 6);
     });
+  };
+
+  // Save detection results to Firestore
+  const saveDetectionToFirestore = async (detections: PlasticDetection[], nonPlasticDetected: boolean) => {
+    if (!currentUser) {
+      // Don't log to console, just return
+      return;
+    }
+
+    try {
+      // Extract plastic types from detections
+      const detectedItems = detections.map(d => d.label);
+      
+      // Calculate average confidence
+      const avgConfidence = detections.length > 0 
+        ? detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length
+        : 0;
+      
+      // Determine plastic type category based on detections
+      let plasticType = "Unknown";
+      if (detections.length > 0) {
+        // If there's only one detection, use its label
+        if (detections.length === 1) {
+          plasticType = detections[0].label;
+        } else {
+          plasticType = "Mixed Plastics";
+        }
+      } else {
+        plasticType = nonPlasticDetected ? "Non-Plastic Items" : "No Items Detected";
+      }
+
+      // Create the detection data object
+      const detectionData = {
+        userId: currentUser.uid,
+        timestamp: serverTimestamp(),
+        detectedItems: detectedItems,
+        confidence: avgConfidence,
+        plasticType: plasticType,
+        nonPlasticDetected: nonPlasticDetected
+      };
+      
+      // Save to Firestore without logging the ID
+      await addDoc(collection(db, "detections"), detectionData);
+      toast.success("Detection saved to your history");
+    } catch (error) {
+      // Don't log the error details to console
+      toast.error("Failed to save detection to history");
+    }
   };
 
   const handleDetection = async () => {
@@ -140,6 +198,13 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
         setNonPlasticDetected(!!result.non_plastic_detected);
         onDetectionsReceived(result.detections, !!result.non_plastic_detected);
   
+        // Save detection to Firestore
+        if (currentUser) {
+          await saveDetectionToFirestore(result.detections, !!result.non_plastic_detected);
+        } else {
+          toast.warning("Sign in to save detection history");
+        }
+        
         if (result.detections.length === 0) {
           toast.info(result.non_plastic_detected ? "Non-plastic item(s) detected." : "No items detected.");
         } else {
@@ -147,10 +212,9 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
           playSound();
         }
   
-        // draw live boxes
+        // Draw live boxes
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         result.detections.forEach(d => {
-          // Changed from d.bbox to d.bounding_box to match the PlasticDetection interface
           const [x, y, w, h] = d.bounding_box;
           ctx.strokeStyle = "#00ff00";
           ctx.lineWidth = 2;
@@ -163,7 +227,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
   
       } catch (err) {
         toast.error("Detection failed.");
-        console.error(err);
       } finally {
         setIsAnalyzing(false);
       }
