@@ -17,7 +17,10 @@ import { analyzeImage, PlasticDetection } from "@/services/geminiService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PdfDownloadButton from "@/components/PdfDownloadButton";
 import { Link } from 'react-router-dom';
-import Navbar from "@/components/Navbar"; // ✅ This is the one to use
+import Navbar from "@/components/Navbar";
+import { useAuth } from "@/contexts/AuthContext";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -28,6 +31,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("results");
   const [inputMethod, setInputMethod] = useState<"upload" | "camera">("upload");
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const { currentUser } = useAuth();
   
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -67,33 +71,53 @@ const Index = () => {
     setNonPlasticDetected(false);
   };
 
-  // const handleAnalyze = async () => {
-  //   if (!selectedImage) {
-  //     toast.error("Please select an image first");
-  //     return;
-  //   }
-  //   setIsAnalyzing(true);
-  //   setActiveTab("results");
-  //   try {
-  //     const result = await analyzeImage(selectedImage);
-  //     setDetections(result.detections);
-  //     setNonPlasticDetected(!!result.non_plastic_detected);
-  //     if (result.detections.length === 0) {
-  //       if (result.non_plastic_detected) {
-  //         toast.info("No plastic items detected, but other materials were identified");
-  //       } else {
-  //         toast.info("No items detected in the image");
-  //       }
-  //     } else {
-  //       toast.success(`Detected ${result.detections.length} plastic item${result.detections.length !== 3 ? 's' : ''}`);
-  //     }
-  //   } catch (error) {
-  //     console.error("Analysis error:", error);
-  //     toast.error("Failed to analyze image");
-  //   } finally {
-  //     setIsAnalyzing(false);
-  //   }
-  // };
+  const saveDetectionToFirestore = async (detections: PlasticDetection[], nonPlasticDetected: boolean) => {
+    if (!currentUser) {
+      console.log("User not logged in, detection not saved to history");
+      toast.warning("Sign in to save detection history");
+      return;
+    }
+
+    try {
+      // Extract plastic types from detections
+      const detectedItems = detections.map(d => d.label);
+      
+      // Calculate average confidence
+      const avgConfidence = detections.length > 0 
+        ? detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length
+        : 0;
+      
+      // Determine plastic type category based on detections
+      let plasticType = "Unknown";
+      if (detections.length > 0) {
+        // If there's only one detection, use its label
+        if (detections.length === 1) {
+          plasticType = detections[0].label;
+        } else {
+          plasticType = "Mixed Plastics";
+        }
+      } else {
+        plasticType = nonPlasticDetected ? "Non-Plastic Items" : "No Items Detected";
+      }
+
+      // Create the detection data object
+      const detectionData = {
+        userId: currentUser.uid,
+        timestamp: serverTimestamp(),
+        detectedItems: detectedItems,
+        confidence: avgConfidence,
+        plasticType: plasticType,
+        nonPlasticDetected: nonPlasticDetected
+      };
+      
+      // Save to Firestore
+      await addDoc(collection(db, "detections"), detectionData);
+      toast.success("Detection saved to your history");
+    } catch (error) {
+      console.error("Error saving detection to Firestore:", error);
+      toast.error("Failed to save detection to history");
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!selectedImage) {
@@ -108,6 +132,11 @@ const Index = () => {
       const result = await analyzeImage(selectedImage);
       setDetections(result.detections);
       setNonPlasticDetected(!!result.non_plastic_detected);
+      
+      // Save detection to Firestore for uploaded images
+      if (currentUser) {
+        await saveDetectionToFirestore(result.detections, !!result.non_plastic_detected);
+      }
       
       if (result.detections.length === 0) {
         if (result.non_plastic_detected) {
@@ -392,7 +421,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <RecycleIcon className="h-5 w-5 text-eco-green-medium" />
             <p className="text-sm text-gradient font-medium">
-              PlasticDetect AI - Helping identify and classify plastic waste for better recycling
+              GreenLens AI - Helping identify and classify plastic waste for better recycling
             </p>
           </div>
           <p className="text-sm bg-eco-gradient bg-clip-text text-transparent font-medium flex items-center gap-1">
