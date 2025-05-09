@@ -164,6 +164,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 📫 Contact
 
-For queries, suggestions, or collaboration, reach out to [@Thorfinn05](https://github.com/Thorfinn05)
+For queries, suggestions, or collaboration, reach out to [@Thorfinn05](https://github.com/Thorfinn05) and [@AitijhyaCoded](https://github.com/AitijhyaCoded)
 
 ---
