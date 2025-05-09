@@ -162,6 +162,65 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
+## 🔮 Future Plans
+
+GreenLens-AI is not just a project—it's a vision for a greener, smarter, and more sustainable future. Here’s what’s coming next:
+
+### 🌐 1. **Blockchain-Based Reward System**
+
+* Integrate a blockchain-powered backend where users are **rewarded with airdrops** based on:
+
+  * The **quantity** and **accuracy** of detected plastic waste.
+  * Engagement in cleanup drives or awareness campaigns.
+* Airdrops will act as tokens that can be **redeemed in the marketplace** or used to unlock exclusive community features.
+
+### 🧑‍🤝‍🧑 2. **Community Platform**
+
+* Launch a dedicated **social platform for eco-conscious users**.
+* Features:
+
+  * **Awareness campaigns**
+  * **Plastic-free lifestyle challenges**
+  * **Event planning for cleanups**
+  * **Collaboration with like-minded individuals and organizations**
+  * Works like **X (formerly Twitter)** but focused on environmental activism.
+
+### 📘 3. **Educational Hub**
+
+* Create a **Learning Page** for all age groups to understand:
+
+  * The dangers of plastic pollution.
+  * Long-term environmental effects.
+  * Sustainable lifestyle practices.
+  * **Alternatives to common plastic products**.
+
+### 🛒 4. **Green Marketplace**
+
+* A dedicated e-commerce section where users can:
+
+  * **Buy eco-friendly alternatives** to plastic items.
+  * **Redeem airdropped tokens** for discounts or purchases.
+  * **Sell or exchange recycled or sustainable products.**
+
+### 🧠 5. **AI Model Enhancement**
+
+* Train and deploy a **CNN-based plastic detection model** for:
+
+  * Greater precision and classification accuracy.
+  * Offline/Edge deployment for mobile use.
+  * Support for **real-time detection** with detailed segmentation.
+
+### 🤝 6. **Partnerships & Collaborations**
+
+* Collaborate with:
+
+  * **NGOs working in waste management and recycling.**
+  * **Eco-friendly product startups or farms.**
+  * **Corporate sustainability initiatives.**
+* Joint campaigns, data sharing, and ecosystem building.
+
+---
+
 ## 📫 Contact
 
 For queries, suggestions, or collaboration, reach out to [@Thorfinn05](https://github.com/Thorfinn05) and [@AitijhyaCoded](https://github.com/AitijhyaCoded)
