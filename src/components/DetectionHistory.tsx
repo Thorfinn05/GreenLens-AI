@@ -8,6 +8,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Toggle } from "@/components/ui/toggle";
 import { List, Table as TableIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 interface Detection {
   id: string;
@@ -15,6 +16,7 @@ interface Detection {
   detectedItems: string[];
   confidence: number;
   timestamp: Date;
+  nonPlasticDetected?: boolean;
 }
 
 export default function DetectionHistory() {
@@ -25,7 +27,10 @@ export default function DetectionHistory() {
 
   useEffect(() => {
     async function fetchDetections() {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const q = query(
@@ -41,16 +46,17 @@ export default function DetectionHistory() {
           const data = doc.data();
           detectionsData.push({
             id: doc.id,
-            plasticType: data.plasticType,
+            plasticType: data.plasticType || "Unknown",
             detectedItems: data.detectedItems || [],
-            confidence: data.confidence,
-            timestamp: data.timestamp.toDate(),
+            confidence: data.confidence || 0,
+            timestamp: data.timestamp?.toDate() || new Date(),
+            nonPlasticDetected: data.nonPlasticDetected || false,
           });
         });
 
         setDetections(detectionsData);
       } catch (error) {
-        console.error("Error fetching detections:", error);
+        toast.error("Failed to load detection history. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -65,6 +71,18 @@ export default function DetectionHistory() {
         <CardContent className="p-6">
           <div className="h-40 flex items-center justify-center">
             <p>Loading detection history...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="h-40 flex items-center justify-center flex-col gap-2">
+            <p>Please log in to view your detection history.</p>
           </div>
         </CardContent>
       </Card>
@@ -121,7 +139,13 @@ export default function DetectionHistory() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <p className="mb-2">Detected Items: {detection.detectedItems.join(", ")}</p>
+                <p className="mb-2">
+                  {detection.detectedItems.length > 0 
+                    ? `Detected Items: ${detection.detectedItems.join(", ")}` 
+                    : detection.nonPlasticDetected 
+                      ? "Non-plastic items detected" 
+                      : "No items detected"}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Confidence: {(detection.confidence * 100).toFixed(1)}%
                 </p>
@@ -145,7 +169,13 @@ export default function DetectionHistory() {
                 {detections.map((detection) => (
                   <TableRow key={detection.id}>
                     <TableCell className="font-medium">{detection.plasticType}</TableCell>
-                    <TableCell>{detection.detectedItems.join(", ")}</TableCell>
+                    <TableCell>
+                      {detection.detectedItems.length > 0 
+                        ? detection.detectedItems.join(", ") 
+                        : detection.nonPlasticDetected 
+                          ? "Non-plastic items" 
+                          : "No items detected"}
+                    </TableCell>
                     <TableCell>{(detection.confidence * 100).toFixed(1)}%</TableCell>
                     <TableCell>
                       {formatDistanceToNow(detection.timestamp, { addSuffix: true })}
