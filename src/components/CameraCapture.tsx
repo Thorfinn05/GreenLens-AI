@@ -7,7 +7,8 @@ import { analyzeImage, PlasticDetection } from "@/services/geminiService";
 import PdfDownloadButton from "./PdfDownloadButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes } from "firebase/storage";
 
 interface CameraCaptureProps {
   onImageCaptured: (file: File) => void;
@@ -37,9 +38,8 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     if (!enableSound) return;
     try {
       const audio = new Audio("/detection.mp3");
-      audio.play().catch(err => {
-        // Silently handle error, don't show in console
-        // This prevents the "Failed to load because no supported source was found" error
+      audio.play().catch(() => {
+        // Silently handle error
       });
     } catch (error) {
       // Silently handle any error
@@ -54,7 +54,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
         setAvailableCameras(cams);
       }).catch(err => {
         toast.error("Camera access error.");
-        console.error(err);
       });
   }, []);
 
@@ -64,7 +63,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
         video: { facingMode: isFrontCamera ? "user" : "environment" },
         audio: false
       };
-
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       setIsCameraActive(true);
@@ -77,7 +75,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
       toast.success("Webcam started");
     } catch (err) {
       toast.error("Failed to access webcam");
-      console.error(err);
     }
   };
 
@@ -107,7 +104,6 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
     detections.forEach(d => {
       const [x, y, w, h] = d.bounding_box;
       ctx.strokeStyle = "#00ff00";
@@ -120,22 +116,24 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
     });
   };
 
-  // Save detection results to Firestore
-  const saveDetectionToFirestore = async (detections: PlasticDetection[], nonPlasticDetected: boolean) => {
+  // Save detection image and results to Firebase
+  const saveDetectionToFirebase = async (
+    detections: PlasticDetection[],
+    nonPlasticDetected: boolean,
+    imageDataBase64: string // Changed to Base64 string
+  ) => {
     if (!currentUser) {
-      // Don't log to console, just return
+      toast.warning("Sign in to save detection history");
       return;
     }
 
     try {
       // Extract plastic types from detections
       const detectedItems = detections.map(d => d.label);
-      
       // Calculate average confidence
-      const avgConfidence = detections.length > 0 
+      const avgConfidence = detections.length > 0
         ? detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length
         : 0;
-      
       // Determine plastic type category based on detections
       let plasticType = "Unknown";
       if (detections.length > 0) {
@@ -156,75 +154,69 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
         detectedItems: detectedItems,
         confidence: avgConfidence,
         plasticType: plasticType,
-        nonPlasticDetected: nonPlasticDetected
+        nonPlasticDetected: nonPlasticDetected,
+        imageDataBase64: imageDataBase64, // Save Base64 string
       };
-      
-      // Save to Firestore without logging the ID
+      // Save to Firestore
       await addDoc(collection(db, "detections"), detectionData);
       toast.success("Detection saved to your history");
     } catch (error) {
-      // Don't log the error details to console
       toast.error("Failed to save detection to history");
     }
   };
 
   const handleDetection = async () => {
     if (!videoRef.current || !canvasRef.current) return;
-  
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-  
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-  
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
     canvas.toBlob(async (blob) => {
       if (!blob) {
         toast.error("Failed to process video frame.");
         return;
       }
-  
+
       const file = new File([blob], "frame.jpg", { type: "image/jpeg" });
       onImageCaptured(file);
       setIsAnalyzing(true);
-  
+
       try {
         const result = await analyzeImage(file);
+
         setDetections(result.detections);
         setNonPlasticDetected(!!result.non_plastic_detected);
         onDetectionsReceived(result.detections, !!result.non_plastic_detected);
-  
-        // Save detection to Firestore
+
+        // Draw detections on canvas
+        drawDetections(canvas, result.detections); // Draw detections
+
+        // Get the final canvas image with bounding boxes as Base64
+        const processedImageDataUrl = canvas.toDataURL("image/jpeg", 0.95);
+
         if (currentUser) {
-          await saveDetectionToFirestore(result.detections, !!result.non_plastic_detected);
-        } else {
-          toast.warning("Sign in to save detection history");
+          // Save image with detection boxes to Firebase
+          await saveDetectionToFirebase(
+            result.detections,
+            !!result.non_plastic_detected,
+            processedImageDataUrl // Save Base64
+          );
         }
-        
+
         if (result.detections.length === 0) {
           toast.info(result.non_plastic_detected ? "Non-plastic item(s) detected." : "No items detected.");
         } else {
           toast.success(`${result.detections.length} plastic item(s) detected.`);
           playSound();
         }
-  
-        // Draw live boxes
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        result.detections.forEach(d => {
-          const [x, y, w, h] = d.bounding_box;
-          ctx.strokeStyle = "#00ff00";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(x, y, w, h);
-  
-          ctx.fillStyle = "#00ff00";
-          ctx.font = "14px Arial";
-          ctx.fillText(`${d.label} (${Math.round(d.confidence * 100)}%)`, x + 4, y - 6);
-        });
-  
+
       } catch (err) {
         toast.error("Detection failed.");
       } finally {
@@ -232,7 +224,7 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
       }
     }, "image/jpeg", 0.95);
   };
-  
+
   // Auto detection loop
   useEffect(() => {
     if (autoDetect && isCameraActive) {
@@ -323,9 +315,9 @@ const CameraCapture = ({ onImageCaptured, onDetectionsReceived, isAnalyzing, set
             ))}
           </ul>
           <div className="mt-4">
-            <PdfDownloadButton 
-              detections={detections} 
-              nonPlasticDetected={nonPlasticDetected} 
+            <PdfDownloadButton
+              detections={detections}
+              nonPlasticDetected={nonPlasticDetected}
             />
           </div>
         </div>
