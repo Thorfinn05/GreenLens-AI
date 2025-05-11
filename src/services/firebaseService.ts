@@ -472,13 +472,23 @@ export const getUserDetections = async (userId: string, limit = 20) => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PlasticDetection));
 };
 
+// Add this new function for searching users by username
+export const searchUsersByUsername = async (username: string) => {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("username", "==", username));
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
+};
+
+// For extracting mentions, update this function to work better with usernames
+const extractMentions = (content: string): string[] => {
+  const mentions = content.match(/@(\w+)/g);
+  return mentions ? mentions.map(mention => mention.slice(1)) : [];
+};
+
 // Utility functions
 const extractHashtags = (content: string): string[] => {
   const hashtags = content.match(/#[a-zA-Z0-9_]+/g);
   return hashtags ? hashtags.map(tag => tag.slice(1)) : [];
-};
-
-const extractMentions = (content: string): string[] => {
-  const mentions = content.match(/@[a-zA-Z0-9_]+/g);
-  return mentions ? mentions.map(mention => mention.slice(1)) : [];
 };
