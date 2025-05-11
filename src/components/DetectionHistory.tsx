@@ -409,41 +409,43 @@ export default function DetectionHistory({ userId }: DetectionHistoryProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {selectedDetection && (
-        <Card className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full md:w-3/4 lg:w-1/2 shadow-xl border">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle>Detailed Detection</CardTitle>
-            <Button variant="ghost" onClick={handleCloseDetailedView}>
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedDetection.imageDataBase64 && (
-              <div className="border rounded overflow-hidden">
-                <img
-                  src={selectedDetection.imageDataBase64}
-                  alt="Detailed Detection Image"
-                  className="w-full h-auto object-cover"
+        <div className="fixed top-0 left-0 w-full h-full bg-black/50 z-50 flex items-center justify-center">
+          <Card className="max-w-md w-full m-4 overflow-y-auto max-h-[90vh]">
+            <CardHeader className="flex justify-between items-center">
+              <CardTitle>Detailed Detection</CardTitle>
+              <Button variant="ghost" onClick={handleCloseDetailedView}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedDetection.imageDataBase64 && (
+                <div className="border rounded overflow-hidden">
+                  <img
+                    src={selectedDetection.imageDataBase64}
+                    alt="Detailed Detection Image"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              )}
+              <p><strong>Plastic Type:</strong> {selectedDetection.plasticType}</p>
+              <p><strong>Detected Items:</strong> {selectedDetection.detectedItems.join(", ")}</p>
+              <p><strong>Confidence:</strong> {(selectedDetection.confidence * 100).toFixed(1)}%</p>
+              <p><strong>Date & Time:</strong> {formatDistanceToNow(selectedDetection.timestamp, { addSuffix: true })}</p>
+              <div className="mt-4">
+                <PdfDownloadButton
+                  detections={[{
+                    label: selectedDetection.plasticType,
+                    confidence: selectedDetection.confidence,
+                    bounding_box: [0, 0, 1, 1], // Placeholder for bounding box
+                  }]}
+                  nonPlasticDetected={selectedDetection.nonPlasticDetected || false}
                 />
               </div>
-            )}
-            <p><strong>Plastic Type:</strong> {selectedDetection.plasticType}</p>
-            <p><strong>Detected Items:</strong> {selectedDetection.detectedItems.join(", ")}</p>
-            <p><strong>Confidence:</strong> {(selectedDetection.confidence * 100).toFixed(1)}%</p>
-            <p><strong>Date & Time:</strong> {formatDistanceToNow(selectedDetection.timestamp, { addSuffix: true })}</p>
-            <div className="mt-4">
-              <PdfDownloadButton
-                detections={[{
-                  label: selectedDetection.plasticType,
-                  confidence: selectedDetection.confidence,
-                  bounding_box: [0, 0, 1, 1], // Placeholder for bounding box
-                }]}
-                nonPlasticDetected={selectedDetection.nonPlasticDetected || false}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       <div className="flex justify-between items-center">
