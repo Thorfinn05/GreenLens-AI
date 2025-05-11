@@ -13,12 +13,15 @@ export default function HashtagPage() {
   const { posts, loading, refreshPosts } = useCommunity();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [hashtagPosts, setHashtagPosts] = useState<typeof posts>([]);
+  const [hashtagPosts, setHashtagPosts] = useState<Array<any>>([]);
 
+  // Only refresh posts when component mounts
   useEffect(() => {
     refreshPosts();
-  }, [tag, refreshPosts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Separate effect to filter posts when posts or tag changes
   useEffect(() => {
     if (tag && posts.length > 0) {
       const filtered = posts.filter(post => 
