@@ -3,9 +3,9 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import Feed from "@/components/community/Feed";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Earth, CalendarDays, Users, Award } from "lucide-react";
+import { Earth, CalendarDays, Users, Award, Plus } from "lucide-react";
 
 export default function Community() {
   const { currentUser } = useAuth();
@@ -32,32 +32,71 @@ export default function Community() {
                 Feed
               </Button>
               
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start" 
-                onClick={() => navigate("/campaigns")}
-              >
-                <Award className="mr-2 h-4 w-4" />
-                Campaigns
-              </Button>
+              <div>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate("/campaigns")}
+                >
+                  <Award className="mr-2 h-4 w-4" />
+                  Campaigns
+                </Button>
+                {currentUser && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start pl-8 text-sm text-muted-foreground"
+                    onClick={() => navigate("/campaigns/new")}
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    New Campaign
+                  </Button>
+                )}
+              </div>
               
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start" 
-                onClick={() => navigate("/challenges")}
-              >
-                <Award className="mr-2 h-4 w-4" />
-                Challenges
-              </Button>
+              <div>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate("/challenges")}
+                >
+                  <Award className="mr-2 h-4 w-4" />
+                  Challenges
+                </Button>
+                {currentUser && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start pl-8 text-sm text-muted-foreground"
+                    onClick={() => navigate("/challenges/new")}
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    New Challenge
+                  </Button>
+                )}
+              </div>
               
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start" 
-                onClick={() => navigate("/events")}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Events
-              </Button>
+              <div>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate("/events")}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  Events
+                </Button>
+                {currentUser && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start pl-8 text-sm text-muted-foreground"
+                    onClick={() => navigate("/events/new")}
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    New Event
+                  </Button>
+                )}
+              </div>
             </nav>
             
             <hr className="my-4" />
