@@ -1,3 +1,4 @@
+
 {
   "hosting": {
     "public": "dist",
@@ -14,13 +15,6 @@
     ]
   },
   "storage": {
-    "rules": "storage.rules",
-    "cors": [
-      {
-        "origin": ["https://greenlens-ai.vercel.app"],
-        "method": ["GET", "POST", "PUT", "DELETE"],
-        "maxAgeSeconds": 3600
-      }
-    ]
+    "rules": "storage.rules"
   }
 }
