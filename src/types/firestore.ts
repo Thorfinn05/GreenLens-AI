@@ -59,6 +59,15 @@ export interface UserProfile {
   followers: string[];
 }
 
+export interface CampaignData {
+  title: string;
+  description: string;
+  hashtag: string;
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  base64Image?: string | null; // Optional Base64 image data
+ }
+
 export interface Campaign {
   id: string;
   title: string;
