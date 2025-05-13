@@ -1,22 +1,25 @@
-
+// AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { 
-  User, 
+import { auth } from "@/lib/firebase"; // Assuming your Firebase config is here
+import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword, 
-  signOut, 
+  signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
-  updateProfile
+  GoogleAuthProvider, // Import GoogleAuthProvider
+  signInWithPopup, // Import signInWithPopup
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom"; // Assuming you use react-router-dom
 
 interface AuthContextType {
-  currentUser: User | null;
+  currentUser: any; // Firebase Auth user
   loading: boolean;
-  signup: (email: string, password: string, displayName: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  googleSignup: () => Promise<void>; // New function for Google signup
+  googleLogin: () => Promise<void>; // New function for Google login
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,27 +33,25 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  async function signup(email: string, password: string, displayName: string) {
+  async function signup(email: string, password: string) {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Update profile with display name
-      await updateProfile(userCredential.user, {
-        displayName
-      });
+      await createUserWithEmailAndPassword(auth, email, password);
       toast({
-        title: "Account created successfully",
-        description: "You are now signed in."
+        title: "Account created",
+        description: "Your account has been created successfully.",
       });
-    } catch (error) {
+      navigate("/profile");
+    } catch (error: any) {
       console.error("Signup error:", error);
       toast({
-        title: "Sign up failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive"
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : "An error occurred during signup.",
+        variant: "destructive",
       });
       throw error;
     }
@@ -61,14 +62,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Login successful",
-        description: "Welcome back!"
+        description: "Welcome back!",
       });
-    } catch (error) {
+      navigate("/profile");
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error instanceof Error ? error.message : "Invalid email or password",
-        variant: "destructive"
+        variant: "destructive",
       });
       throw error;
     }
@@ -79,14 +81,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut(auth);
       toast({
         title: "Logged out",
-        description: "You have been successfully logged out."
+        description: "You have been successfully logged out.",
       });
-    } catch (error) {
+      navigate("/login");
+    } catch (error: any) {
       console.error("Logout error:", error);
       toast({
         title: "Logout failed",
         description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive"
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }
+
+  async function googleSignup() {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Account created",
+        description: "Your account has been created successfully with Google.",
+      });
+      navigate("/profile");
+    } catch (error: any) {
+      console.error("Google signup error:", error);
+      toast({
+        title: "Google signup failed",
+        description: error instanceof Error ? error.message : "An error occurred during Google signup.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }
+
+  async function googleLogin() {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Login successful",
+        description: "Logged in successfully with Google.",
+      });
+      navigate("/profile");
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      toast({
+        title: "Google login failed",
+        description: error instanceof Error ? error.message : "An error occurred during Google login.",
+        variant: "destructive",
       });
       throw error;
     }
@@ -106,7 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signup,
     login,
-    logout
+    logout,
+    googleSignup, // Add to the value
+    googleLogin, // Add to the value
   };
 
   return (
