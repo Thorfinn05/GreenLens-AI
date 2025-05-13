@@ -1,56 +1,61 @@
-
+// LoginForm.tsx
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       await login(email, password);
-      navigate("/profile");
+      // Navigation handled by AuthContext
     } catch (error) {
-      // Error is handled in the AuthContext
-    } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      await googleLogin();
+      // Navigation handled by AuthContext
+    } catch (error) {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
+    <Card>
+      <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Sign In</CardTitle>
-        <CardDescription>
-          Enter your email and password to access your account
-        </CardDescription>
+        <CardDescription>Enter your email below to sign in to your account</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
+      <CardContent className="grid gap-4">
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-2">
             <label htmlFor="email" className="text-sm font-medium text-left block">
               Email
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="email@example.com"
+              placeholder="name@example.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="grid gap-2">
             <label htmlFor="password" className="text-sm font-medium text-left block">
               Password
             </label>
@@ -62,27 +67,27 @@ export default function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col">
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full mt-1" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Sign In"}
           </Button>
-          <p className="mt-4 text-sm text-center">
-            Don't have an account?{" "}
-            <Button
-              variant="link"
-              className="p-0"
-              onClick={() => navigate("/signup")}
-            >
-              Sign Up
-            </Button>
-          </p>
-        </CardFooter>
-      </form>
+        </form>
+        <div className="relative w-full my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or sign in with
+            </span>
+          </div>
+        </div>
+        <Button className="w-full" variant="outline" onClick={handleGoogleLogin} disabled={isLoading}>
+          {isLoading ? "Signing in with Google..." : "Sign In with Google"}
+        </Button>
+      </CardContent>
+      <CardFooter className="text-center">
+        Don't have an account? <Link to="/signup" className="text-primary">Sign Up</Link>
+      </CardFooter>
     </Card>
   );
 }
