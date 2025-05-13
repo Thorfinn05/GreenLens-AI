@@ -12,7 +12,6 @@ GreenLens-AI is an AI-powered web application designed to detect and classify pl
 * **🔐 User Authentication**: Secure login and registration using Firebase Authentication.
 * **🗂️ Detection History**: Stores image analysis results in Firebase Firestore and displays them in the user's profile.
 * **💬 Community Platform**: Engage with a dedicated social platform for eco-conscious users, featuring:
-
   * Awareness campaigns
   * Plastic-free lifestyle challenges
   * Event planning for cleanups
