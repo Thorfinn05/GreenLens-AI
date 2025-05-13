@@ -36,54 +36,65 @@ export default function CreateCampaign() {
     return null;
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       setImage(file);
-      
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    } else {
+      setImage(null);
+      setImagePreview(null);
+      if (file) {
+        toast.error("Please select a .png or .jpg/.jpeg image file.");
+      }
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!title || !description || !hashtag || !startDate) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    // Format hashtag correctly
-    let formattedHashtag = hashtag;
-    if (formattedHashtag.startsWith("#")) {
-      formattedHashtag = formattedHashtag.substring(1);
-    }
-
     setLoading(true);
-    try {
-      await createCampaign({
-        title,
-        description,
-        imageFile: image || undefined,
-        hashtag: formattedHashtag,
-        startDate: startDate.getTime(),
-        endDate: endDate ? endDate.getTime() : undefined
+
+    let base64Image: string | null = null;
+    if (image) {
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onloadend = () => {
+          base64Image = reader.result as string;
+          resolve(null);
+        };
+        reader.readAsDataURL(image);
       });
-      
+    }
+
+    const campaignData = {
+      title,
+      description,
+      hashtag,
+      startDate: startDate?.getTime(),
+      endDate: endDate?.getTime(),
+      base64Image, // Include the Base64 encoded image data
+    };
+
+    try {
+      await createCampaign(campaignData);
       toast.success("Campaign created successfully!");
-      navigate("/campaigns");
-    } catch (error) {
+      navigate("/");
+    } catch (error: any) {
       console.error("Error creating campaign:", error);
-      toast.error("Failed to create campaign. Please try again.");
+      toast.error(`Failed to create campaign: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    onSubmit(event);
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
