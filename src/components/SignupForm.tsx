@@ -1,78 +1,68 @@
-
+// SignupForm.tsx
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const { signup } = useAuth();
+  const { signup, googleSignup } = useAuth();
   const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
+  const validatePassword = (pw: string, cpw: string) => {
+    if (pw !== cpw) {
+      return "Passwords do not match";
     }
-    
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters long");
-      return;
-    }
+    return null;
+  };
 
-    setPasswordError("");
-    
-    try {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const error = validatePassword(password, confirmPassword);
+    setPasswordError(error);
+    if (!error) {
       setIsLoading(true);
-      await signup(email, password, displayName);
-      navigate("/profile");
+      try {
+        await signup(email, password);
+        // Navigation handled by AuthContext
+      } catch (err) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setIsLoading(true);
+    try {
+      await googleSignup();
+      // Navigation handled by AuthContext
     } catch (error) {
-      // Error is handled in the AuthContext
-    } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl">Create Account</CardTitle>
-        <CardDescription>
-          Sign up to start tracking your plastic detections
-        </CardDescription>
+    <Card>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Create an account</CardTitle>
+        <CardDescription>Enter your email below to create your account</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="displayName" className="text-sm font-medium text-left block">
-              Your Name
-            </label>
-            <Input
-              id="displayName"
-              type="text"
-              placeholder="John Doe"
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
+      <CardContent className="grid gap-4">
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-2">
             <label htmlFor="email" className="text-sm font-medium text-left block">
               Email
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="email@example.com"
+              placeholder="name@example.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -105,27 +95,36 @@ export default function SignupForm() {
               <p className="text-sm text-red-500 mt-1">{passwordError}</p>
             )}
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col">
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full mt-1" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
-          <p className="mt-4 text-sm text-center">
-            Already have an account?{" "}
-            <Button
-              variant="link"
-              className="p-0"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
-            </Button>
-          </p>
-        </CardFooter>
-      </form>
+        </form>
+        <div className="relative w-full my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or sign up with
+            </span>
+          </div>
+        </div>
+        <Button className="w-full" variant="outline" onClick={handleGoogleSignup} disabled={isLoading}>
+          {isLoading ? "Signing up with Google..." : "Sign Up with Google"}
+        </Button>
+      </CardContent>
+      <CardFooter className="flex flex-col">
+        <p className="mt-4 text-sm text-center">
+          Already have an account?{" "}
+          <Button
+            variant="link"
+            className="p-0"
+            onClick={() => navigate("/login")}
+          >
+            Sign In
+          </Button>
+        </p>
+      </CardFooter>
     </Card>
   );
 }
