@@ -1,13 +1,13 @@
 # 🌿 GreenLens-AI
 
-GreenLens-AI is an AI-powered web application designed to detect and classify plastic waste in images. Utilizing Google's Gemini 1.5 Flash model, it provides real-time analysis of mixed waste images, identifying plastic types, item descriptions, confidence scores, and bounding boxes. The application is built with Vite, React, TypeScript, Firebase, and Tailwind CSS.
+GreenLens-AI is an AI-powered web application designed to detect and classify plastic waste in images. Utilizing Google's Gemini 2.0 Flash model, it provides real-time analysis of mixed waste images, identifying plastic types, item descriptions, confidence scores, and bounding boxes. The application is built with Vite, React, TypeScript, Firebase, and Tailwind CSS.
 
 ---
 
 ## 🚀 Features
 
 * **📷 Camera Integration**: Capture images directly from your webcam or mobile device camera and analyze them instantly.
-* **🧠 AI-Powered Detection**: Detects and classifies plastic waste using Google's Gemini 1.5 Flash model.
+* **🧠 AI-Powered Detection**: Detects and classifies plastic waste using Google's Gemini 2.0 Flash model.
 * **📦 Detailed Classification**: Identifies plastic types (e.g., PET, HDPE) with confidence scores and bounding boxes.
 * **🔐 User Authentication**: Secure login and registration using Firebase Authentication.
 * **🗂️ Detection History**: Stores image analysis results in Firebase Firestore and displays them in the user's profile.
