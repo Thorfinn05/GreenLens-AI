@@ -170,7 +170,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙌 Acknowledgements
 
-* [Google's Gemini 1.5 Flash](https://ai.google/)
+* [Google's Gemini 2.0 Flash](https://ai.google/)
 * [Firebase](https://firebase.google.com/)
 * [Vite](https://vitejs.dev/)
 * [Tailwind CSS](https://tailwindcss.com/)
