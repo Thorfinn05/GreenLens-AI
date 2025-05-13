@@ -174,35 +174,35 @@ export const likePost = async (postId: string) => {
   });
 };
 
-// Campaign Functions
-export const createCampaign = async (campaignData: { title: string; description: string; imageFile?: File; hashtag: string; startDate: number; endDate?: number }) => {
-  const user = auth.currentUser;
-  if (!user) throw new Error("No authenticated user");
-  
-  let imageURL = "";
-  if (campaignData.imageFile) {
-    const imageRef = ref(storage, `campaign_images/${user.uid}/${Date.now()}`);
-    await uploadBytes(imageRef, campaignData.imageFile);
-    imageURL = await getDownloadURL(imageRef);
-  }
-  
-  const campaignRef = collection(db, "campaigns");
-  const newCampaign: Omit<Campaign, "id"> = {
-    title: campaignData.title,
-    description: campaignData.description,
-    imageURL,
-    creatorId: user.uid,
-    creatorName: user.displayName || "Anonymous",
-    hashtag: campaignData.hashtag,
-    startDate: campaignData.startDate,
-    endDate: campaignData.endDate,
-    participants: [user.uid],
-    createdAt: Date.now()
-  };
-  
-  const docRef = await addDoc(campaignRef, newCampaign);
-  return { id: docRef.id, ...newCampaign };
-};
+ // Campaign Functions
+ export const createCampaign = async (campaignData: {
+   title: string;
+   description: string;
+   hashtag: string;
+   startDate: number;
+   endDate?: number;
+   base64Image?: string | null; // Accept the Base64 string
+ }) => {
+   const user = auth.currentUser;
+   if (!user) throw new Error("No authenticated user");
+
+   const campaignRef = collection(db, "campaigns");
+   const newCampaign: Omit<Campaign, "id"> = {
+     title: campaignData.title,
+     description: campaignData.description,
+     imageURL: campaignData.base64Image || "", // Store the Base64 string as imageURL
+     creatorId: user.uid,
+     creatorName: user.displayName || "Anonymous",
+     hashtag: campaignData.hashtag,
+     startDate: campaignData.startDate,
+     endDate: campaignData.endDate,
+     participants: [user.uid],
+     createdAt: Date.now(),
+   };
+
+   const docRef = await addDoc(campaignRef, newCampaign);
+   return { id: docRef.id, ...newCampaign };
+ };
 
 export const getCampaigns = async (limit = 20) => {
   const campaignsQuery = query(
