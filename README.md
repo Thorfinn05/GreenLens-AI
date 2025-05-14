@@ -1,18 +1,22 @@
 # 🌿 GreenLens-AI
 
-GreenLens-AI is an AI-powered web application designed to detect and classify plastic waste in images.
-Utilizing Google's Gemini 1.5 Flash model, it provides real-time analysis of mixed waste images, identifying plastic types, item descriptions, confidence scores, and bounding boxes.
-The application is built with Vite, React, TypeScript, Firebase, and Tailwind CSS.
+GreenLens-AI is an AI-powered web application designed to detect and classify plastic waste in images. Utilizing Google's Gemini 2.0 Flash model, it provides real-time analysis of mixed waste images, identifying plastic types, item descriptions, confidence scores, and bounding boxes. The application is built with Vite, React, TypeScript, Firebase, and Tailwind CSS.
 
 ---
 
 ## 🚀 Features
 
 * **📷 Camera Integration**: Capture images directly from your webcam or mobile device camera and analyze them instantly.
-* **🧠 AI-Powered Detection**: Detects and classifies plastic waste using Google's Gemini 1.5 Flash model.
+* **🧠 AI-Powered Detection**: Detects and classifies plastic waste using Google's Gemini 2.0 Flash model.
 * **📦 Detailed Classification**: Identifies plastic types (e.g., PET, HDPE) with confidence scores and bounding boxes.
 * **🔐 User Authentication**: Secure login and registration using Firebase Authentication.
-* **🗂️ Detection History**: Stores image analysis results in Firebase Firestore and shown to the user in user's profile.
+* **🗂️ Detection History**: Stores image analysis results in Firebase Firestore and displays them in the user's profile.
+* **💬 Community Platform**: Engage with a dedicated social platform for eco-conscious users, featuring:
+  * Awareness campaigns
+  * Plastic-free lifestyle challenges
+  * Event planning for cleanups
+  * Collaboration with like-minded individuals and organizations
+  * Functionality similar to X (formerly Twitter) but focused on environmental activism
 * **💡 Responsive Design**: Fully mobile-ready and optimized UI using Tailwind CSS.
 
 ---
@@ -28,7 +32,7 @@ The application is built with Vite, React, TypeScript, Firebase, and Tailwind CS
 
 ---
 
-🔗 **Live Demo:** [GreenLens AI](https://greenlens-ai.vercel.app/)
+🔗 **Live Demo**: [GreenLens AI](https://greenlens-ai.vercel.app/)
 
 ---
 
@@ -91,7 +95,14 @@ The application is built with Vite, React, TypeScript, Firebase, and Tailwind CS
 
 4. **📂 Access Detection History**:
 
-   * Previous analyses are saved to your Firebase account and you can view data in profile page too.
+   * Previous analyses are saved to your Firebase account and can be viewed in the profile page.
+
+5. **💬 Engage in the Community Platform**:
+
+   * Participate in awareness campaigns.
+   * Join plastic-free lifestyle challenges.
+   * Plan and coordinate cleanup events.
+   * Collaborate with like-minded individuals and organizations.
 
 ---
 
@@ -159,7 +170,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙌 Acknowledgements
 
-* [Google's Gemini 1.5 Flash](https://ai.google/)
+* [Google's Gemini 2.0 Flash](https://ai.google/)
 * [Firebase](https://firebase.google.com/)
 * [Vite](https://vitejs.dev/)
 * [Tailwind CSS](https://tailwindcss.com/)
@@ -170,7 +181,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 GreenLens-AI is not just a project—it's a vision for a greener, smarter, and more sustainable future. Here’s what’s coming next:
 
-### 🌐 1. **Blockchain-Based Reward System**
+### 🌐 1. Blockchain-Based Reward System
 
 * Integrate a blockchain-powered backend where users are **rewarded with airdrops** based on:
 
@@ -178,18 +189,15 @@ GreenLens-AI is not just a project—it's a vision for a greener, smarter, and m
   * Engagement in cleanup drives or awareness campaigns.
 * Airdrops will act as tokens that can be **redeemed in the marketplace** or used to unlock exclusive community features.
 
-### 🧑‍🤝‍🧑 2. **Community Platform**
+### 🧑‍🤝‍🧑 2. Enhanced Community Platform
 
-* Launch a dedicated **social platform for eco-conscious users**.
-* Features:
+* Expand the social platform with:
 
-  * **Awareness campaigns**
-  * **Plastic-free lifestyle challenges**
-  * **Event planning for cleanups**
-  * **Collaboration with like-minded individuals and organizations**
-  * Works like **X (formerly Twitter)** but focused on environmental activism.
+  * User levels and achievements
+  * Verified NGO accounts
+  * Hashtag campaigns and live cleanup tracking
 
-### 📘 3. **Educational Hub**
+### 📘 3. Educational Hub
 
 * Create a **Learning Page** for all age groups to understand:
 
@@ -198,7 +206,7 @@ GreenLens-AI is not just a project—it's a vision for a greener, smarter, and m
   * Sustainable lifestyle practices.
   * **Alternatives to common plastic products**.
 
-### 🛒 4. **Green Marketplace**
+### 🛒 4. Green Marketplace
 
 * A dedicated e-commerce section where users can:
 
@@ -206,7 +214,7 @@ GreenLens-AI is not just a project—it's a vision for a greener, smarter, and m
   * **Redeem airdropped tokens** for discounts or purchases.
   * **Sell or exchange recycled or sustainable products.**
 
-### 🧠 5. **AI Model Enhancement**
+### 🧠 5. AI Model Enhancement
 
 * Train and deploy a **CNN-based plastic detection model** for:
 
@@ -214,7 +222,7 @@ GreenLens-AI is not just a project—it's a vision for a greener, smarter, and m
   * Offline/Edge deployment for mobile use.
   * Support for **real-time detection** with detailed segmentation.
 
-### 🤝 6. **Partnerships & Collaborations**
+### 🤝 6. Partnerships & Collaborations
 
 * Collaborate with:
 
