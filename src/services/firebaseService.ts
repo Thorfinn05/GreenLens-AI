@@ -246,22 +246,53 @@ export const leaveCampaign = async (campaignId: string) => {
 };
 
 // Challenge Functions
-export const createChallenge = async (challengeData: { title: string; description: string; imageFile?: File; hashtag: string; startDate: number; endDate: number; tips?: string[] }) => {
+// export const createChallenge = async (challengeData: { title: string; description: string; imageFile?: File; hashtag: string; startDate: number; endDate: number; tips?: string[] }) => {
+//   const user = auth.currentUser;
+//   if (!user) throw new Error("No authenticated user");
+  
+//   let imageURL = "";
+//   if (challengeData.imageFile) {
+//     const imageRef = ref(storage, `challenge_images/${user.uid}/${Date.now()}`);
+//     await uploadBytes(imageRef, challengeData.imageFile);
+//     imageURL = await getDownloadURL(imageRef);
+//   }
+  
+//   const challengeRef = collection(db, "challenges");
+//   const newChallenge: Omit<Challenge, "id"> = {
+//     title: challengeData.title,
+//     description: challengeData.description,
+//     imageURL,
+//     creatorId: user.uid,
+//     creatorName: user.displayName || "Anonymous",
+//     hashtag: challengeData.hashtag,
+//     startDate: challengeData.startDate,
+//     endDate: challengeData.endDate,
+//     participants: [user.uid],
+//     createdAt: Date.now(),
+//     tips: challengeData.tips || []
+//   };
+  
+//   const docRef = await addDoc(challengeRef, newChallenge);
+//   return { id: docRef.id, ...newChallenge };
+// };
+
+export const createChallenge = async (challengeData: {
+  title: string;
+  description: string;
+  base64Image?: string | null;
+  hashtag: string;
+  startDate: number;
+  endDate: number;
+  tips?: string[];
+}) => {
   const user = auth.currentUser;
   if (!user) throw new Error("No authenticated user");
-  
-  let imageURL = "";
-  if (challengeData.imageFile) {
-    const imageRef = ref(storage, `challenge_images/${user.uid}/${Date.now()}`);
-    await uploadBytes(imageRef, challengeData.imageFile);
-    imageURL = await getDownloadURL(imageRef);
-  }
-  
+
   const challengeRef = collection(db, "challenges");
   const newChallenge: Omit<Challenge, "id"> = {
     title: challengeData.title,
     description: challengeData.description,
-    imageURL,
+    imageURL: challengeData.base64Image || "",
     creatorId: user.uid,
     creatorName: user.displayName || "Anonymous",
     hashtag: challengeData.hashtag,
@@ -271,10 +302,11 @@ export const createChallenge = async (challengeData: { title: string; descriptio
     createdAt: Date.now(),
     tips: challengeData.tips || []
   };
-  
+
   const docRef = await addDoc(challengeRef, newChallenge);
   return { id: docRef.id, ...newChallenge };
 };
+
 
 export const getChallenges = async (limit = 20) => {
   const challengesQuery = query(
