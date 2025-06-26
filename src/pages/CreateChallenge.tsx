@@ -39,17 +39,40 @@ export default function CreateChallenge() {
     return null;
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     const file = e.target.files[0];
+  //     setImage(file);
       
-      // Create preview
+  //     // Create preview
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setImagePreview(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (
+      file &&
+      (file.type === "image/png" ||
+        file.type === "image/jpeg" ||
+        file.type === "image/jpg")
+    ) {
+      setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    } else {
+      setImage(null);
+      setImagePreview(null);
+      if (file) {
+        toast.error("Please select a .png or .jpg/.jpeg image file.");
+      }
     }
   };
 
@@ -71,44 +94,96 @@ export default function CreateChallenge() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (!title || !description || !hashtag || !startDate || !endDate) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+  //   if (!title || !description || !hashtag || !startDate || !endDate) {
+  //     toast.error("Please fill in all required fields");
+  //     return;
+  //   }
 
-    // Format hashtag correctly
-    let formattedHashtag = hashtag;
-    if (formattedHashtag.startsWith("#")) {
-      formattedHashtag = formattedHashtag.substring(1);
-    }
+  //   // Format hashtag correctly
+  //   let formattedHashtag = hashtag;
+  //   if (formattedHashtag.startsWith("#")) {
+  //     formattedHashtag = formattedHashtag.substring(1);
+  //   }
 
-    // Filter out empty tips
-    const filteredTips = tips.filter(tip => tip.trim() !== "");
+  //   // Filter out empty tips
+  //   const filteredTips = tips.filter(tip => tip.trim() !== "");
 
-    setLoading(true);
-    try {
-      await createChallenge({
-        title,
-        description,
-        imageFile: image || undefined,
-        hashtag: formattedHashtag,
-        startDate: startDate.getTime(),
-        endDate: endDate.getTime(),
-        tips: filteredTips
-      });
+  //   setLoading(true);
+  //   try {
+  //     await createChallenge({
+  //       title,
+  //       description,
+  //       imageFile: image || undefined,
+  //       hashtag: formattedHashtag,
+  //       startDate: startDate.getTime(),
+  //       endDate: endDate.getTime(),
+  //       tips: filteredTips
+  //     });
       
-      toast.success("Challenge created successfully!");
-      navigate("/challenges");
-    } catch (error) {
-      console.error("Error creating challenge:", error);
-      toast.error("Failed to create challenge. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     toast.success("Challenge created successfully!");
+  //     navigate("/challenges");
+  //   } catch (error) {
+  //     console.error("Error creating challenge:", error);
+  //     toast.error("Failed to create challenge. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!title || !description || !hashtag || !startDate || !endDate) {
+    toast.error("Please fill in all required fields");
+    return;
+  }
+
+  // Format hashtag correctly
+  let formattedHashtag = hashtag.startsWith("#")
+    ? hashtag.substring(1)
+    : hashtag;
+
+  // Filter out empty tips
+  const filteredTips = tips.filter(tip => tip.trim() !== "");
+
+  setLoading(true);
+
+  let base64Image: string | null = null;
+  if (image) {
+    const reader = new FileReader();
+    await new Promise((resolve) => {
+      reader.onloadend = () => {
+        base64Image = reader.result as string;
+        resolve(null);
+      };
+      reader.readAsDataURL(image);
+    });
+  }
+
+  try {
+    await createChallenge({
+      title,
+      description,
+      base64Image,
+      hashtag: formattedHashtag,
+      startDate: startDate.getTime(),
+      endDate: endDate.getTime(),
+      tips: filteredTips
+    });
+
+    toast.success("Challenge created successfully!");
+    navigate("/challenges");
+  } catch (error) {
+    console.error("Error creating challenge:", error);
+    toast.error("Failed to create challenge. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
