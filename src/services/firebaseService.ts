@@ -350,22 +350,51 @@ export const leaveChallenge = async (challengeId: string) => {
 };
 
 // Event Functions
-export const createEvent = async (eventData: { title: string; description: string; imageFile?: File; location: { address: string; lat?: number; lng?: number }; date: number; endDate?: number }) => {
+// export const createEvent = async (eventData: { title: string; description: string; imageFile?: File; location: { address: string; lat?: number; lng?: number }; date: number; endDate?: number }) => {
+//   const user = auth.currentUser;
+//   if (!user) throw new Error("No authenticated user");
+  
+//   let imageURL = "";
+//   if (eventData.imageFile) {
+//     const imageRef = ref(storage, `event_images/${user.uid}/${Date.now()}`);
+//     await uploadBytes(imageRef, eventData.imageFile);
+//     imageURL = await getDownloadURL(imageRef);
+//   }
+  
+//   const eventRef = collection(db, "events");
+//   const newEvent: Omit<Event, "id"> = {
+//     title: eventData.title,
+//     description: eventData.description,
+//     imageURL,
+//     location: eventData.location,
+//     creatorId: user.uid,
+//     creatorName: user.displayName || "Anonymous",
+//     date: eventData.date,
+//     endDate: eventData.endDate,
+//     attendees: [user.uid],
+//     createdAt: Date.now()
+//   };
+  
+//   const docRef = await addDoc(eventRef, newEvent);
+//   return { id: docRef.id, ...newEvent };
+// };
+
+export const createEvent = async (eventData: {
+  title: string;
+  description: string;
+  base64Image?: string | null;
+  location: { address: string; lat?: number; lng?: number };
+  date: number;
+  endDate?: number;
+}) => {
   const user = auth.currentUser;
   if (!user) throw new Error("No authenticated user");
-  
-  let imageURL = "";
-  if (eventData.imageFile) {
-    const imageRef = ref(storage, `event_images/${user.uid}/${Date.now()}`);
-    await uploadBytes(imageRef, eventData.imageFile);
-    imageURL = await getDownloadURL(imageRef);
-  }
-  
+
   const eventRef = collection(db, "events");
   const newEvent: Omit<Event, "id"> = {
     title: eventData.title,
     description: eventData.description,
-    imageURL,
+    imageURL: eventData.base64Image || "",
     location: eventData.location,
     creatorId: user.uid,
     creatorName: user.displayName || "Anonymous",
@@ -374,10 +403,11 @@ export const createEvent = async (eventData: { title: string; description: strin
     attendees: [user.uid],
     createdAt: Date.now()
   };
-  
+
   const docRef = await addDoc(eventRef, newEvent);
   return { id: docRef.id, ...newEvent };
 };
+
 
 export const getEvents = async (limit = 20) => {
   const eventsQuery = query(
