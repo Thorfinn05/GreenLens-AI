@@ -70,46 +70,96 @@ export default function CreateEvent() {
     return options;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (!title || !description || !address || !date || !time) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+  //   if (!title || !description || !address || !date || !time) {
+  //     toast.error("Please fill in all required fields");
+  //     return;
+  //   }
 
-    setLoading(true);
-    try {
-      // Parse date and time
-      const [hours, minutes] = time.split(":").map(num => parseInt(num));
-      const eventDate = new Date(date);
-      eventDate.setHours(hours, minutes, 0, 0);
+  //   setLoading(true);
+  //   try {
+  //     // Parse date and time
+  //     const [hours, minutes] = time.split(":").map(num => parseInt(num));
+  //     const eventDate = new Date(date);
+  //     eventDate.setHours(hours, minutes, 0, 0);
       
-      // Calculate end date based on duration
-      const durationHours = parseInt(duration);
-      const endDate = addHours(eventDate, durationHours);
+  //     // Calculate end date based on duration
+  //     const durationHours = parseInt(duration);
+  //     const endDate = addHours(eventDate, durationHours);
 
-      await createEvent({
-        title,
-        description,
-        imageFile: image || undefined,
-        location: {
-          address,
-          // In a production app, we would add geocoding here to get lat/lng
-        },
-        date: eventDate.getTime(),
-        endDate: endDate.getTime()
-      });
+  //     await createEvent({
+  //       title,
+  //       description,
+  //       imageFile: image || undefined,
+  //       location: {
+  //         address,
+  //         // In a production app, we would add geocoding here to get lat/lng
+  //       },
+  //       date: eventDate.getTime(),
+  //       endDate: endDate.getTime()
+  //     });
       
-      toast.success("Event created successfully!");
-      navigate("/events");
-    } catch (error) {
-      console.error("Error creating event:", error);
-      toast.error("Failed to create event. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     toast.success("Event created successfully!");
+  //     navigate("/events");
+  //   } catch (error) {
+  //     console.error("Error creating event:", error);
+  //     toast.error("Failed to create event. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!title || !description || !address || !date || !time) {
+    toast.error("Please fill in all required fields");
+    return;
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const eventDate = new Date(date);
+  eventDate.setHours(hours, minutes, 0, 0);
+
+  const durationHours = parseFloat(duration);
+  const endDate = addHours(eventDate, durationHours);
+
+  setLoading(true);
+
+  let base64Image: string | null = null;
+  if (image) {
+    const reader = new FileReader();
+    await new Promise((resolve) => {
+      reader.onloadend = () => {
+        base64Image = reader.result as string;
+        resolve(null);
+      };
+      reader.readAsDataURL(image);
+    });
+  }
+
+  try {
+    await createEvent({
+      title,
+      description,
+      base64Image,
+      location: { address },
+      date: eventDate.getTime(),
+      endDate: endDate.getTime()
+    });
+
+    toast.success("Event created successfully!");
+    navigate("/events");
+  } catch (error) {
+    console.error("Error creating event:", error);
+    toast.error("Failed to create event. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
