@@ -142,7 +142,7 @@ export default function CreateChallenge() {
   }
 
   // Format hashtag correctly
-  let formattedHashtag = hashtag.startsWith("#")
+  const formattedHashtag = hashtag.startsWith("#")
     ? hashtag.substring(1)
     : hashtag;
 
