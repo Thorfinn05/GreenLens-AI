@@ -25,7 +25,7 @@ GreenLens-AI is an AI-powered web application designed to detect and classify pl
 
 * **Frontend**: React, TypeScript, Vite, Tailwind CSS
 * **Backend**: Firebase Authentication, Firestore
-* **AI Model**: Google's Gemini 1.5 Flash (via REST API)
+* **AI Model**: Google's Gemini 2.5 Flash (via REST API)
 * **Camera Access**: `navigator.mediaDevices` API
 * **State Management**: React Context API
 * **Notifications**: Sonner for toast messages
