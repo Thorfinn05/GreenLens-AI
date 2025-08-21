@@ -422,7 +422,7 @@ Do not include any explanation or other text outside the JSON object.`
             temperature: 0.01, // Lower temperature for more precise outputs
             top_p: 0.95,
             top_k: 40,
-            max_output_tokens: 2048,
+            max_output_tokens: 3000,
           }
         })
       });
