@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import PlasticInfo from "@/components/PlasticInfo";
-import DetectionCanvas from "@/components/DetectionCanvas";
+import DetectionDisplay from "@/components/DetectionDisplay";
 import JsonView from "@/components/JsonView";
 import CameraCapture from "@/components/CameraCapture";
 import { analyzeImage, PlasticDetection } from "@/services/geminiService";
@@ -71,7 +71,82 @@ const Index = () => {
     setNonPlasticDetected(false);
   };
 
-  const saveDetectionToFirebase = async (
+//   const saveDetectionToFirebase = async (
+//   currentUser: { uid: string } | null,
+//   detections: PlasticDetection[],
+//   nonPlasticDetected: boolean,
+//   imageBlob: Blob // The image blob with bounding boxes
+// ) => {
+
+//   if (!currentUser) {
+//     toast.warning("Sign in to save detection history");
+//     return;
+//   }
+
+//   try {
+//     // Extract plastic types from detections
+//     const detectedItems = detections.map((d) => d.label);
+//     // Calculate average confidence
+//     const avgConfidence =
+//       detections.length > 0
+//         ? detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length
+//         : 0;
+//     // Determine plastic type category based on detections
+//     let plasticType = "Unknown";
+//     if (detections.length > 0) {
+//       // If there's only one detection, use its label
+//       if (detections.length === 1) {
+//         plasticType = detections[0].label;
+//       } else {
+//         plasticType = "Mixed Plastics";
+//       }
+//     } else {
+//       plasticType = nonPlasticDetected
+//         ? "Non-Plastic Items"
+//         : "No Items Detected";
+//     }
+
+//     // Convert image Blob to Base64
+//     const reader = new FileReader();
+//     reader.readAsDataURL(imageBlob);
+//     await new Promise<void>((resolve, reject) => {
+//       reader.onloadend = async () => {
+//         const base64Image = reader.result as string;
+
+//         // Create the detection data object
+//         const detectionData = {
+//           userId: currentUser.uid,
+//           timestamp: serverTimestamp(),
+//           detectedItems: detectedItems,
+//           confidence: avgConfidence,
+//           plasticType: plasticType,
+//           nonPlasticDetected: nonPlasticDetected,
+//           imageDataBase64: base64Image, // Store Base64 string
+//         };
+
+//         // Save to Firestore
+//         try {
+//           await addDoc(collection(db, "detections"), detectionData);
+//           toast.success("Detection saved to your history");
+//           resolve();
+//         } catch (error) {
+//           toast.error("Failed to save detection to history");
+//           reject(error); // Reject the promise if Firestore save fails
+//         }
+//       };
+
+//       reader.onerror = (error) => {
+//         toast.error("Failed to convert image to Base64");
+//         reject(error); // Reject the promise if Base64 conversion fails
+//       };
+//     });
+//   } catch (error) {
+//     console.error("Error during saving:", error);
+//     toast.error("An unexpected error occurred");
+//   }
+// };
+
+const saveDetectionToFirebase = async (
   currentUser: { uid: string } | null,
   detections: PlasticDetection[],
   nonPlasticDetected: boolean,
@@ -349,7 +424,7 @@ const Index = () => {
               {imagePreview && (
                 <Card className="futuristic-card overflow-hidden shadow-lg mb-6 transition-all duration-300 hover:shadow-eco-glow animate-zoom-in">
                   <div className="p-3 md:p-6">
-                    <DetectionCanvas 
+                    <DetectionDisplay 
                       imageUrl={imagePreview}
                       detections={detections}
                       width={canvasSize.width}
