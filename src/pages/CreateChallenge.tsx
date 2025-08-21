@@ -167,7 +167,7 @@ export default function CreateChallenge() {
     await createChallenge({
       title,
       description,
-      base64Image,
+      imageFile: image,
       hashtag: formattedHashtag,
       startDate: startDate.getTime(),
       endDate: endDate.getTime(),
