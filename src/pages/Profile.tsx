@@ -39,6 +39,9 @@ import PostCard from "@/components/community/PostCard";
 import { Loader2 } from "lucide-react";
 import DetectionHistory from "@/components/DetectionHistory";
 import { useToast } from "@/hooks/use-toast";
+import { Order } from "@/types/firestore";
+import { Card, CardContent } from "@/components/ui/card";
+import { ShoppingBag } from "lucide-react";
 
 export default function Profile() {
   const { currentUser, logout } = useAuth();
@@ -46,6 +49,7 @@ export default function Profile() {
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCurrentUser, setIsCurrentUser] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -82,6 +86,10 @@ export default function Profile() {
           // Get the current user's posts sorted by createdAt in descending order
           const posts = await firebaseService.getUserPosts(currentUser.uid);
           setUserPosts(posts);
+          
+          // Get the current user's orders
+          const orders = await firebaseService.getUserOrders(currentUser.uid, 20);
+          setUserOrders(orders);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -240,7 +248,7 @@ export default function Profile() {
       
       {/* Profile Content Tabs */}
       <Tabs defaultValue="posts">
-        <TabsList className="grid grid-cols-3 max-w-md mb-8">
+        <TabsList className={`grid ${isCurrentUser ? 'grid-cols-4' : 'grid-cols-3'} max-w-lg mb-8`}>
           <TabsTrigger value="posts">
             <User className="mr-2 h-4 w-4" />
             Posts
@@ -253,6 +261,12 @@ export default function Profile() {
             <CalendarDays className="mr-2 h-4 w-4" />
             Events
           </TabsTrigger>
+          {isCurrentUser && (
+            <TabsTrigger value="orders">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Orders
+            </TabsTrigger>
+          )}
         </TabsList>
         
         {/* Posts Tab */}
@@ -301,6 +315,60 @@ export default function Profile() {
             )}
           </div>
         </TabsContent>
+        
+        {/* Orders Tab - Only for current user */}
+        {isCurrentUser && (
+          <TabsContent value="orders" className="mt-0">
+            {userOrders.length > 0 ? (
+              <div className="space-y-4 max-w-3xl mx-auto">
+                {userOrders.map((order) => (
+                  <Card key={order.id}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-semibold">Order #{order.id.slice(-8)}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">${order.total.toFixed(2)}</p>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'confirmed' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {order.items.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center text-sm">
+                            <span>{item.product.name} x{item.quantity}</span>
+                            <span>${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-muted/20 rounded-lg">
+                <p className="text-muted-foreground">No orders yet.</p>
+                <Button 
+                  variant="link" 
+                  className="mt-2"
+                  onClick={() => navigate("/marketplace")}
+                >
+                  Start shopping in the marketplace
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
