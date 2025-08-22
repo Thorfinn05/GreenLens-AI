@@ -72,7 +72,7 @@
 
 
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { RecycleIcon, Users, ShoppingBag } from "lucide-react";
+import { RecycleIcon, Users, ShoppingBag, ScanSearch } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Layout() {
@@ -98,6 +98,14 @@ export default function Layout() {
           </Link>
 
           <nav className="flex gap-4 items-center">
+            <Link
+              to="/"
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-eco-green-light text-white hover:bg-eco-green transition duration-200"
+            >
+              <ScanSearch className="inline-block h-4 w-4 mr-1" />
+              Scan
+            </Link>
+            
             <Link
               to="/community"
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-eco-blue-light text-white hover:bg-eco-blue transition duration-200"
