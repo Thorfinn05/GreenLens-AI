@@ -1273,6 +1273,27 @@ export const getOrder = async (orderId: string): Promise<Order | null> => {
   return order;
 };
 
+// Get user's order history
+export const getUserOrders = async (userId: string, limit: number = 20): Promise<Order[]> => {
+  try {
+    const ordersQuery = query(
+      collection(db, "orders"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
+      fsLimit(limit)
+    );
+    
+    const ordersSnapshot = await getDocs(ordersQuery);
+    return ordersSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Order));
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    throw error;
+  }
+};
+
 // Seed Products Function - Call once to populate the database with mock products
 export const seedProducts = async (): Promise<void> => {
   const { mockProducts } = await import("@/data/mockProducts");
